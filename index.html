@@ -26,8 +26,8 @@ small{opacity:.75}
 #tabs{display:flex;gap:6px;width:100%;max-width:520px}
 #tabs button{flex:1;padding:10px 2px;border-radius:10px;border:2px solid #7a1a20;background:#1b0608;color:#f6e7c1;font-size:12.5px;font-weight:700}
 #tabs button.on{background:#f2c14e;color:#3a0a0e;border-color:#f2c14e}
-.pane{width:100%;max-width:520px;display:none;flex-direction:column;align-items:center;gap:14px}
-.pane.on{display:flex}
+.pane{width:100%;max-width:520px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.sec{width:100%;max-width:520px;font-size:17px;font-weight:700;color:#f2c14e;border-top:2px solid #5a1219;padding-top:14px;margin-top:6px}
 .card{width:100%;background:#1b0608;border:1px solid #5a1219;border-radius:12px;padding:12px;font-size:14px;line-height:1.5}
 .card h3{margin:0 0 6px;font-size:15px;color:#f2c14e}
 .card .m{font-size:12px;opacity:.7;margin-bottom:6px}
@@ -37,16 +37,18 @@ small{opacity:.75}
 .card button+button{margin-left:8px;background:#7a1a20;color:#f2c14e}
 </style></head><body>
 <h1>🎙️ Katha Chitra · Bol kar kaam karao</h1>
-<div id="tabs"><button class="on" data-p="p1">🎙️ Bolo</button><button data-p="p2">📜 Kaam</button><button data-p="p3">🎬 Videos</button><button data-p="p4">📺 YouTube</button></div>
-<div class="pane on" id="p1">
+<div class="pane" id="p1">
 <button id="mic" aria-label="mic">🎤</button>
 <div id="st">Mic dabao aur bolo</div>
 <textarea id="txt" placeholder="Jo bologe yahan likha aayega. Galti ho to yahin theek kar lo."></textarea>
 <button class="b" id="send">Bhejo (AI ko kaam do)</button>
 <div id="rep"></div>
 </div>
+<div class="sec">📜 AI ke kaam aur jawab</div>
 <div class="pane" id="p2"><button class="b" id="r2">🔄 Naya dekho</button><div id="l2" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
+<div class="sec">🎬 Bane hue video</div>
 <div class="pane" id="p3"><button class="b" id="r3">🔄 Naye video dekho</button><div id="l3" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
+<div class="sec">📺 YouTube par roz ka system</div>
 <div class="pane" id="p4"><button class="b" id="r4">🔄 Naya dekho</button><div id="l4" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
 <details id="set"><summary>⚙️ Pehli baar setup (token)</summary>
 <small>GitHub token ek baar yahan daalo. Ye sirf is phone mein save rehta hai.</small>
@@ -59,7 +61,7 @@ const $=id=>document.getElementById(id);
 const st=t=>$("st").textContent=t;
 const gt=()=>{try{return localStorage.getItem("kc_tok")||""}catch(e){return ""}};
 if(!gt())$("set").open=true;
-$("save").onclick=()=>{try{localStorage.setItem("kc_tok",$("tok").value.trim());$("tok").value="";$("set").open=false;st("Token save ho gaya ✅")}catch(e){st("Save nahi hua")}};
+$("save").onclick=()=>{try{localStorage.setItem("kc_tok",$("tok").value.trim());$("tok").value="";$("set").open=false;st("Token save ho gaya ✅");setTimeout(loadAll,200)}catch(e){st("Save nahi hua")}};
 
 // ---- voice ----
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -94,7 +96,7 @@ $("send").onclick=async()=>{
     st("Bhej diya ✅ AI kaam kar raha hai (issue #"+j.number+")");
     $("rep").style.display="block";$("rep").innerHTML='Jawab aate hi yahin dikhega…<br><a href="'+j.html_url+'" target="_blank">GitHub par dekho</a>';
     try{localStorage.setItem("kc_last",JSON.stringify([j.number,j.html_url]))}catch(e){}
-    wait(j.number,j.html_url);
+    wait(j.number,j.html_url);setTimeout(loadWork,3000);
   }catch(e){st("Nahi gaya: "+e.message+" (token sahi hai? issues likhne ki ijazat?)")}
   $("send").disabled=false;
 };
@@ -118,12 +120,6 @@ function wait(n,url){
 try{const l=JSON.parse(localStorage.getItem("kc_last")||"null");if(l&&gt()){$("rep").style.display="block";$("rep").textContent="Pichla jawab dekh raha hoon…";wait(l[0],l[1])}}catch(e){}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){try{const l=JSON.parse(localStorage.getItem("kc_last")||"null");if(l&&gt())wait(l[0],l[1])}catch(e){}}});
 
-// ---- tabs ----
-document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
-  document.querySelectorAll(".pane").forEach(x=>x.classList.toggle("on",x.id===b.dataset.p));
-  if(b.dataset.p==="p2")loadWork();if(b.dataset.p==="p3")loadVideos();if(b.dataset.p==="p4")loadYT();
-});
 const esc=t=>t.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const clean=t=>t.replace(/<sub>[\s\S]*?<\/sub>/g,"").trim();
 const fd=d=>new Date(d).toLocaleString("hi-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
@@ -238,5 +234,8 @@ async function loadYT(){
   }catch(e){L.textContent="Nahi aaya: "+e.message}
 }
 $("r4").onclick=loadYT;
+function loadAll(){if(!gt())return;loadWork();loadVideos();loadYT()}
+loadAll();
+
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script></body></html>
