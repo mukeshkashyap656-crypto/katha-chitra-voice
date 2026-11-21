@@ -27,7 +27,7 @@ small{opacity:.75}
 #tabs button{flex:1;padding:10px 2px;border-radius:10px;border:2px solid #7a1a20;background:#1b0608;color:#f6e7c1;font-size:12.5px;font-weight:700}
 #tabs button.on{background:#f2c14e;color:#3a0a0e;border-color:#f2c14e}
 .pane{width:100%;max-width:520px;display:flex;flex-direction:column;align-items:center;gap:14px}
-.ctl textarea{width:100%;min-height:80px;margin-top:8px;border-radius:10px;border:1px solid #7a1a20;background:#120405;color:#f6e7c1;font-size:16px;padding:10px}.ctl{margin-top:10px;padding-top:8px;border-top:1px dashed #5a1219}.ctl input{width:100%;padding:10px;border-radius:8px;border:1px solid #7a1a20;background:#120405;color:#f6e7c1;font-size:16px}.row{display:flex;gap:8px}.row button{flex:1;margin-left:0!important;margin-top:8px}.sec{width:100%;max-width:520px;font-size:17px;font-weight:700;color:#f2c14e;border-top:2px solid #5a1219;padding-top:14px;margin-top:6px}
+.jm{font-size:12px;opacity:.8;margin-top:6px}.ctl .jc{margin-left:8px;background:#7a1a20!important;color:#f2c14e!important}.ctl textarea{width:100%;min-height:80px;margin-top:8px;border-radius:10px;border:1px solid #7a1a20;background:#120405;color:#f6e7c1;font-size:16px;padding:10px}.ctl{margin-top:10px;padding-top:8px;border-top:1px dashed #5a1219}.ctl input{width:100%;padding:10px;border-radius:8px;border:1px solid #7a1a20;background:#120405;color:#f6e7c1;font-size:16px}.row{display:flex;gap:8px}.row button{flex:1;margin-left:0!important;margin-top:8px}.sec{width:100%;max-width:520px;font-size:17px;font-weight:700;color:#f2c14e;border-top:2px solid #5a1219;padding-top:14px;margin-top:6px}
 .card{width:100%;background:#1b0608;border:1px solid #5a1219;border-radius:12px;padding:12px;font-size:14px;line-height:1.5}
 .card h3{margin:0 0 6px;font-size:15px;color:#f2c14e}
 .card .m{font-size:12px;opacity:.7;margin-bottom:6px}
@@ -126,8 +126,22 @@ const fd=d=>new Date(d).toLocaleString("hi-IN",{day:"numeric",month:"short",hour
 
 function fixBox(issue,bhag){
   const w=document.createElement("div");w.className="ctl";
-  w.innerHTML="<button class=fx>✏️ Sudhar karwao</button><div class=fb style='display:none'><textarea class=ft placeholder='Kya theek karwana hai? Bolo ya likho. Jaise: Ram ka chehra bada karo, awaaz dheemi karo'></textarea><div class=row><button class=fm>🎤 Bolo</button><button class=fs>Bhejo</button></div><div class=m></div></div>";
-  const fb=w.querySelector(".fb"),ta=w.querySelector(".ft"),m=w.querySelector(".m");
+  w.innerHTML="<button class=fx>✏️ Sudhar karwao</button><button class=jc>🔍 Poori video ki jaanch</button><div class=jm></div><div class=fb style='display:none'><textarea class=ft placeholder='Kya theek karwana hai? Bolo ya likho. Jaise: Ram ka chehra bada karo, awaaz dheemi karo'></textarea><div class=row><button class=fm>🎤 Bolo</button><button class=fs>Bhejo</button></div><div class=m></div></div>";
+  const fb=w.querySelector(".fb"),ta=w.querySelector(".ft"),m=fb.querySelector(".m");
+  const jb=w.querySelector(".jc"),jm=w.querySelector(".jm");
+  jb.onclick=async()=>{
+    if(!gt()){jm.textContent="Pehle token daalo";return}
+    const k=bhag||(window.__bh&&window.__bh[issue]);
+    if(!k){jm.textContent="Is video ka bhaag number nahi mila. Bolo tab se likho: JAANCH-VIDEO Bhag N";return}
+    jb.disabled=true;jm.textContent="Bhej raha hoon…";
+    try{
+      const r=await api("/issues",{method:"POST",body:JSON.stringify({title:"Bhag "+k+" jaanch",body:"@ai JAANCH-VIDEO Bhag "+k})});
+      const j=await r.json();if(!r.ok)throw new Error(j.message||r.status);
+      jm.textContent="✅ Jaanch shuru (issue #"+j.number+"). 3-8 minute mein 'AI ke kaam' mein poora faisla aayega.";
+      setTimeout(loadWork,4000);
+    }catch(er){jm.textContent="❌ "+er.message}
+    jb.disabled=false;
+  };
   w.querySelector(".fx").onclick=e=>{fb.style.display=fb.style.display==="none"?"block":"none"};
   let rec=null,on=false;const fm=w.querySelector(".fm");
   fm.onclick=()=>{
@@ -199,7 +213,7 @@ async function loadVideos(){
       while((m=re.exec(c.body))){
         const k=m[1]+"/"+m[2];if(seen[k])continue;seen[k]=1;
         const cov=(c.body.match(new RegExp("blob\\/"+m[1].replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\/([^\\s)\\]]+\\.jpg)","g"))||[]).map(x=>x.split("/").pop()).filter(x=>x!=="check_sheet.jpg")[0];
-        vids.push({b:m[1],f:m[2],cover:cov,at:c.created_at,n:c.issue_url.split("/").pop()});
+        vids.push({b:m[1],f:m[2],cover:cov,at:c.created_at,n:c.issue_url.split("/").pop()});(window.__bh=window.__bh||{})[c.issue_url.split("/").pop()]=(m[1].match(/bhag(\d+)/i)||m[2].match(/[Bb]hag(\d+)/)||[])[1];
       }
     }
     L.innerHTML="";
