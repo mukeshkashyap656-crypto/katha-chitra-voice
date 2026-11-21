@@ -60,7 +60,7 @@ $("mic").onclick=()=>{
 };
 
 // ---- send to GitHub AI ----
-const api=(p,o={})=>fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+p,{...o,headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github+json","Content-Type":"application/json"}});
+const api=(p,o={})=>fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+p,{cache:"no-store",...o,headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github+json","Content-Type":"application/json"}});
 let polling=null;
 $("send").onclick=async()=>{
   let t=$("txt").value.trim();
@@ -75,14 +75,15 @@ $("send").onclick=async()=>{
     $("txt").value="";
     st("Bhej diya ✅ AI kaam kar raha hai (issue #"+j.number+")");
     $("rep").style.display="block";$("rep").innerHTML='Jawab aate hi yahin dikhega…<br><a href="'+j.html_url+'" target="_blank">GitHub par dekho</a>';
+    try{localStorage.setItem("kc_last",JSON.stringify([j.number,j.html_url]))}catch(e){}
     wait(j.number,j.html_url);
   }catch(e){st("Nahi gaya: "+e.message+" (token sahi hai? issues likhne ki ijazat?)")}
   $("send").disabled=false;
 };
 function wait(n,url){
   clearInterval(polling);let tries=0;
-  polling=setInterval(async()=>{
-    tries++;if(tries>180){clearInterval(polling);return}
+  const chk=async()=>{
+    tries++;if(tries>360){clearInterval(polling);return}
     try{
       const r=await api("/issues/"+n+"/comments");const c=await r.json();
       if(Array.isArray(c)&&c.length){
@@ -93,7 +94,10 @@ function wait(n,url){
         if(/video|render|taiyar|link/i.test(x)===false)clearInterval(polling);
       }
     }catch(e){}
-  },10000);
+  };
+  chk();polling=setInterval(chk,5000);
 }
+try{const l=JSON.parse(localStorage.getItem("kc_last")||"null");if(l&&gt()){$("rep").style.display="block";$("rep").textContent="Pichla jawab dekh raha hoon…";wait(l[0],l[1])}}catch(e){}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){try{const l=JSON.parse(localStorage.getItem("kc_last")||"null");if(l&&gt())wait(l[0],l[1])}catch(e){}}});
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script></body></html>
