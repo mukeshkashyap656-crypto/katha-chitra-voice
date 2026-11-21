@@ -27,7 +27,7 @@ small{opacity:.75}
 #tabs button{flex:1;padding:10px 2px;border-radius:10px;border:2px solid #7a1a20;background:#1b0608;color:#f6e7c1;font-size:12.5px;font-weight:700}
 #tabs button.on{background:#f2c14e;color:#3a0a0e;border-color:#f2c14e}
 .pane{width:100%;max-width:520px;display:flex;flex-direction:column;align-items:center;gap:14px}
-.sec{width:100%;max-width:520px;font-size:17px;font-weight:700;color:#f2c14e;border-top:2px solid #5a1219;padding-top:14px;margin-top:6px}
+.ctl{margin-top:10px;padding-top:8px;border-top:1px dashed #5a1219}.ctl input{width:100%;padding:10px;border-radius:8px;border:1px solid #7a1a20;background:#120405;color:#f6e7c1;font-size:16px}.row{display:flex;gap:8px}.row button{flex:1;margin-left:0!important;margin-top:8px}.sec{width:100%;max-width:520px;font-size:17px;font-weight:700;color:#f2c14e;border-top:2px solid #5a1219;padding-top:14px;margin-top:6px}
 .card{width:100%;background:#1b0608;border:1px solid #5a1219;border-radius:12px;padding:12px;font-size:14px;line-height:1.5}
 .card h3{margin:0 0 6px;font-size:15px;color:#f2c14e}
 .card .m{font-size:12px;opacity:.7;margin-bottom:6px}
@@ -192,6 +192,19 @@ async function rawText(path,ref){
   if(!r.ok)throw new Error(r.status===404?path+" nahi mili":(r.status===401||r.status===403?"token ko Contents: Read-only ki ijazat chahiye":"error "+r.status));
   return r.text();
 }
+
+async function saveEps(k,fn){
+  const g=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/episodes.json?ref=main",{cache:"no-store",headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github+json"}});
+  const gj=await g.json();
+  if(!g.ok)throw new Error(g.status===404?"episodes.json nahi mili":(g.status===401||g.status===403?"token ko Contents: Read and write chahiye":"error "+g.status));
+  const bin=atob(gj.content.replace(/\n/g,""));const txt=new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)));
+  const d=JSON.parse(txt);if(!d[k])throw new Error("Bhag "+k+" list mein nahi");
+  fn(d[k]);
+  const out=JSON.stringify(d,null,1)+"\n";
+  const b64=btoa(Array.from(new TextEncoder().encode(out),c=>String.fromCharCode(c)).join(""));
+  const pr=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/episodes.json",{method:"PUT",headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github+json","Content-Type":"application/json"},body:JSON.stringify({message:"Bhag "+k+": page se badlav",content:b64,sha:gj.sha,branch:"main"})});
+  if(!pr.ok){const j=await pr.json().catch(()=>({}));throw new Error(pr.status===403||pr.status===404?"token ko Contents: Read and write chahiye":(j.message||"error "+pr.status))}
+}
 async function loadYT(){
   const L=$("l4");if(!gt()){L.textContent="Pehle token daalo";return}
   L.textContent="Dekh raha hoon…";
@@ -208,16 +221,41 @@ async function loadYT(){
     for(const k of ks){
       const e=eps[k];const c=document.createElement("div");c.className="card";
       const posted=e.status==="posted"||e.youtube_id;
-      const st=posted?"✅ YouTube par ho gaya":(e.status==="ready"?"⏳ Taiyar · "+(e.date||"")+" shaam 7 baje jaayega":(e.auto?"🛠️ Ban raha hai":"📁 Purana (haath se)"));
-      let h="<h3>Bhag "+k+" · "+esc((e.title||e.file||"").replace(/ #shorts$/,"").slice(0,70))+"</h3><div class=m>"+st+(e.instagram_id?" · Instagram ✅":"")+"</div>";
+      const stt=posted?"✅ YouTube par ho gaya":(e.status==="ready"?"⏳ Taiyar · "+(e.date||"")+" shaam 7 baje jaayega":(e.auto?"🛠️ Ban raha hai":"📁 Purana (haath se)"));
+      let h="<h3>Bhag "+k+" · "+esc((e.title||e.file||"").replace(/ #shorts$/,"").slice(0,70))+"</h3><div class=m>"+stt+(e.instagram_id?" · Instagram ✅":"")+"</div>";
       if(e.youtube_id)h+='<a href="https://www.youtube.com/shorts/'+e.youtube_id+'" target="_blank">▶ YouTube par dekho</a><br>';
       h+="<button class=pl>▶ Video chalao</button><button class=cp>Caption</button>";
+      const canEdit=!posted&&e.auto!==undefined;
+      if(canEdit){h+="<div class=ctl><div class=m>"+(e.auto===false?"⏸ ROKA HUA — post nahi hoga":"Post ki tarikh")+"</div><input type=date class=dt value='"+(e.date||"")+"'><div class=row><button class=sd>📅 Tarikh badlo</button><button class=ps>"+(e.auto===false?"▶ Chalu karo":"⏸ Rok do")+"</button></div><div class=row><button class=pn>🚀 Abhi post karo</button><button class=rb>🔁 Dobara banao</button></div><div class=m id=msg"+k+"></div></div>"}
       c.innerHTML=h;
       c.querySelector(".pl").onclick=async ev=>{
         const b=ev.target;b.disabled=true;b.textContent="Aa raha hai…";
         try{const u=await fileBlob("main",e.file);const vd=document.createElement("video");vd.src=u;vd.controls=true;vd.playsInline=true;b.replaceWith(vd)}
         catch(err){b.disabled=false;b.textContent="▶ Phir koshish";const w=document.createElement("div");w.className="m";w.textContent=err.message;b.after(w)}
       };
+      if(canEdit){
+        const msg=t=>{const m=c.querySelector("#msg"+k);if(m)m.textContent=t};
+        const edit=async(fn,done)=>{try{msg("Ho raha hai…");await saveEps(k,fn);msg(done);setTimeout(loadYT,1200)}catch(er){msg("❌ "+er.message)}};
+        c.querySelector(".sd").onclick=()=>{const v=c.querySelector(".dt").value;if(!v){msg("Tarikh chuno");return}edit(x=>{x.date=v},"✅ Tarikh badal gayi: "+v)};
+        c.querySelector(".ps").onclick=()=>edit(x=>{x.auto=(x.auto===false)},e.auto===false?"✅ Phir chalu":"✅ Rok diya");
+        c.querySelector(".rb").onclick=()=>{$("txt").value="@ai Bhag "+k+" dobara banao";window.scrollTo({top:0,behavior:"smooth"});st("Upar text bhar diya. Chaho to badlo, phir Bhejo dabao")};
+        let armed=false;
+        c.querySelector(".pn").onclick=async ev=>{
+          const b=ev.target;
+          if(!armed){armed=true;b.textContent="⚠️ Pakka? Phir dabao";b.style.background="#c0392b";b.style.color="#fff";setTimeout(()=>{armed=false;b.textContent="🚀 Abhi post karo";b.style.background="";b.style.color=""},6000);return}
+          armed=false;b.disabled=true;
+          try{
+            msg("Shuru kar raha hoon…");
+            await saveEps(k,x=>{x.auto=true});
+            const ist=new Date(Date.now()+19800000).toISOString().slice(0,10);
+            const d=(e.date&&e.date>ist)?e.date:ist;
+            const r=await api("/actions/workflows/publish_day.yml/dispatches",{method:"POST",body:JSON.stringify({ref:"main",inputs:{date:d,dry_run:"false"}})});
+            if(r.status!==204){const j=await r.json().catch(()=>({}));throw new Error(j.message||("error "+r.status)+" (token ko Actions: Read and write chahiye)")}
+            msg("✅ Post shuru ho gaya. 3-5 minute mein YouTube par dikhega. Neeche 'Aakhri baar' mein haal dekho.");
+            setTimeout(loadYT,60000);
+          }catch(er){msg("❌ "+er.message);b.disabled=false}
+        };
+      }
       c.querySelector(".cp").onclick=ev=>{const d=document.createElement("div");d.className="t m";d.style.opacity=1;d.textContent=(e.caption||"")+"\n\nTags: "+(e.tags||[]).join(", ");ev.target.replaceWith(d)};
       L.appendChild(c);
     }
