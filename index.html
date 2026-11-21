@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="hi"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#4a0f14">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Katha Chitra Voice</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#2a0a0d;color:#f6e7c1;font-family:system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px;gap:14px}
+h1{font-size:20px;margin:4px 0;color:#f2c14e}
+#mic{width:150px;height:150px;border-radius:50%;border:4px solid #f2c14e;background:#7a1a20;color:#f2c14e;font-size:60px;cursor:pointer;box-shadow:0 0 0 0 rgba(242,193,78,.5)}
+#mic.on{background:#c0392b;animation:p 1.1s infinite}
+@keyframes p{70%{box-shadow:0 0 0 28px rgba(242,193,78,0)}100%{box-shadow:0 0 0 0 rgba(242,193,78,0)}}
+textarea{width:100%;max-width:520px;min-height:120px;border-radius:12px;border:2px solid #7a1a20;background:#1b0608;color:#f6e7c1;font-size:17px;padding:12px}
+button.b{width:100%;max-width:520px;padding:14px;border-radius:12px;border:0;background:#f2c14e;color:#3a0a0e;font-size:18px;font-weight:700}
+button.b:disabled{opacity:.5}
+#st{font-size:14px;color:#e8b7a0;min-height:20px;text-align:center}
+#rep{width:100%;max-width:520px;background:#1b0608;border-radius:12px;padding:12px;white-space:pre-wrap;font-size:15px;line-height:1.5;display:none}
+a{color:#f2c14e}
+#set{width:100%;max-width:520px;font-size:13px;color:#cfa}
+#set input{width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #7a1a20;background:#1b0608;color:#f6e7c1}
+small{opacity:.75}
+</style></head><body>
+<h1>🎙️ Katha Chitra · Bol kar kaam karao</h1>
+<button id="mic" aria-label="mic">🎤</button>
+<div id="st">Mic dabao aur bolo</div>
+<textarea id="txt" placeholder="Jo bologe yahan likha aayega. Galti ho to yahin theek kar lo."></textarea>
+<button class="b" id="send">Bhejo (AI ko kaam do)</button>
+<div id="rep"></div>
+<details id="set"><summary>⚙️ Pehli baar setup (token)</summary>
+<small>GitHub token ek baar yahan daalo. Ye sirf is phone mein save rehta hai.</small>
+<input id="tok" type="password" placeholder="GitHub token (github_pat_...)">
+<button class="b" id="save" style="padding:10px;font-size:15px">Save karo</button>
+</details>
+<script>
+const OWNER="mukeshkashyap656-crypto",REPO="katha-chitra-videos";
+const $=id=>document.getElementById(id);
+const st=t=>$("st").textContent=t;
+const gt=()=>{try{return localStorage.getItem("kc_tok")||""}catch(e){return ""}};
+if(!gt())$("set").open=true;
+$("save").onclick=()=>{try{localStorage.setItem("kc_tok",$("tok").value.trim());$("tok").value="";$("set").open=false;st("Token save ho gaya ✅")}catch(e){st("Save nahi hua")}};
+
+// ---- voice ----
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null,on=false,base="";
+if(!SR){st("Is browser mein mic nahi chalta. Chrome use karo, ya keyboard ka mic dabao.")}
+$("mic").onclick=()=>{
+  if(!SR){$("txt").focus();return}
+  if(on){rec.stop();return}
+  rec=new SR();rec.lang="hi-IN";rec.interimResults=true;rec.continuous=true;
+  base=$("txt").value?($("txt").value.trim()+" "):"";
+  rec.onresult=e=>{let s="";for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;$("txt").value=base+s};
+  rec.onstart=()=>{on=true;$("mic").classList.add("on");st("Sun raha hoon… bolo. Rokne ko phir dabao")};
+  rec.onend=()=>{on=false;$("mic").classList.remove("on");st("Ruk gaya. Theek ho to Bhejo dabao")};
+  rec.onerror=e=>{st(e.error==="not-allowed"?"Mic ki ijazat do (Chrome settings → Site settings → Microphone)":"Mic error: "+e.error)};
+  rec.start();
+};
+
+// ---- send to GitHub AI ----
+const api=(p,o={})=>fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+p,{...o,headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github+json","Content-Type":"application/json"}});
+let polling=null;
+$("send").onclick=async()=>{
+  let t=$("txt").value.trim();
+  if(!t){st("Pehle kuch bolo ya likho");return}
+  if(!gt()){$("set").open=true;st("Pehle token daalo");return}
+  if(!/@ai/i.test(t))t="@ai "+t;
+  $("send").disabled=true;st("Bhej raha hoon…");
+  try{
+    const r=await api("/issues",{method:"POST",body:JSON.stringify({title:"Voice: "+t.replace("@ai","").trim().slice(0,50),body:t})});
+    const j=await r.json();
+    if(!r.ok)throw new Error(j.message||r.status);
+    $("txt").value="";
+    st("Bhej diya ✅ AI kaam kar raha hai (issue #"+j.number+")");
+    $("rep").style.display="block";$("rep").innerHTML='Jawab aate hi yahin dikhega…<br><a href="'+j.html_url+'" target="_blank">GitHub par dekho</a>';
+    wait(j.number,j.html_url);
+  }catch(e){st("Nahi gaya: "+e.message+" (token sahi hai? issues likhne ki ijazat?)")}
+  $("send").disabled=false;
+};
+function wait(n,url){
+  clearInterval(polling);let tries=0;
+  polling=setInterval(async()=>{
+    tries++;if(tries>180){clearInterval(polling);return}
+    try{
+      const r=await api("/issues/"+n+"/comments");const c=await r.json();
+      if(Array.isArray(c)&&c.length){
+        const x=c[c.length-1].body.replace(/<sub>.*?<\/sub>/gs,"").trim();
+        $("rep").innerHTML="";const d=document.createElement("div");d.textContent=x;$("rep").appendChild(d);
+        const a=document.createElement("a");a.href=url;a.target="_blank";a.textContent="\nPoora GitHub par dekho";$("rep").appendChild(a);
+        st("AI ka jawab aa gaya");
+        if(/video|render|taiyar|link/i.test(x)===false)clearInterval(polling);
+      }
+    }catch(e){}
+  },10000);
+}
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script></body></html>
