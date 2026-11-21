@@ -27,7 +27,7 @@ small{opacity:.75}
 #tabs button{flex:1;padding:10px 2px;border-radius:10px;border:2px solid #7a1a20;background:#1b0608;color:#f6e7c1;font-size:12.5px;font-weight:700}
 #tabs button.on{background:#f2c14e;color:#3a0a0e;border-color:#f2c14e}
 .pane{width:100%;max-width:520px;display:flex;flex-direction:column;align-items:center;gap:14px}
-.jm{font-size:12px;opacity:.8;margin-top:6px}.ctl .jc{margin-left:8px;background:#7a1a20!important;color:#f2c14e!important}.ctl textarea{width:100%;min-height:80px;margin-top:8px;border-radius:10px;border:1px solid #7a1a20;background:#120405;color:#f6e7c1;font-size:16px;padding:10px}.ctl{margin-top:10px;padding-top:8px;border-top:1px dashed #5a1219}.ctl input{width:100%;padding:10px;border-radius:8px;border:1px solid #7a1a20;background:#120405;color:#f6e7c1;font-size:16px}.row{display:flex;gap:8px}.row button{flex:1;margin-left:0!important;margin-top:8px}.sec{width:100%;max-width:520px;font-size:17px;font-weight:700;color:#f2c14e;border-top:2px solid #5a1219;padding-top:14px;margin-top:6px}
+.jm{font-size:12px;opacity:.8;margin-top:6px}.ctl .jc{margin-left:8px;background:#7a1a20!important;color:#f2c14e!important}.ctl textarea{width:100%;min-height:80px;margin-top:8px;border-radius:10px;border:1px solid #7a1a20;background:#120405;color:#f6e7c1;font-size:16px;padding:10px}.ctl{margin-top:10px;padding-top:8px;border-top:1px dashed #5a1219}.ctl input{width:100%;padding:10px;border-radius:8px;border:1px solid #7a1a20;background:#120405;color:#f6e7c1;font-size:16px}.row{display:flex;gap:8px}.row button{flex:1;margin-left:0!important;margin-top:8px}.wb{width:100%;padding:12px;border-radius:10px;border:0;background:#7a1a20;color:#f2c14e;font-weight:700;font-size:15px}.sec{width:100%;max-width:520px;font-size:17px;font-weight:700;color:#f2c14e;border-top:2px solid #5a1219;padding-top:14px;margin-top:6px}
 .card{width:100%;background:#1b0608;border:1px solid #5a1219;border-radius:12px;padding:12px;font-size:14px;line-height:1.5}
 .card h3{margin:0 0 6px;font-size:15px;color:#f2c14e}
 .card .m{font-size:12px;opacity:.7;margin-bottom:6px}
@@ -50,6 +50,18 @@ small{opacity:.75}
 <div class="pane" id="p3"><button class="b" id="r3">🔄 Naye video dekho</button><div id="l3" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
 <div class="sec">📺 YouTube par roz ka system</div>
 <div class="pane" id="p4"><button class="b" id="r4">🔄 Naya dekho</button><div id="l4" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
+
+<details id="warn" style="width:100%;max-width:520px;margin-top:18px;border:2px solid #7a1a20;border-radius:12px;padding:10px;background:#1a0507">
+<summary style="color:#ff8a7a;font-weight:700;font-size:16px">⚠️ Warning (sirf khatre mein kholo)</summary>
+<div style="font-size:13px;line-height:1.5;margin:10px 0;color:#f6e7c1">Agar tumhara Gmail ya GitHub hack ho jaaye, to <b>pehle</b> GitHub ka password badlo aur GitHub → Settings → Developer settings mein <b>voice token delete</b> karo. Phir yahan ke button. Har button <b>do baar</b> dabana padta hai.</div>
+<div class="row"><button class="wb" id="w1">🛑 Sab post turant roko</button></div>
+<div class="m" style="font-size:12px;margin:2px 0 10px">Aane wale saare bhaag ka auto-post band. Baad mein ek ek karke chalu kar sakte ho.</div>
+<div class="row"><button class="wb" id="w2">📵 Is phone se token hatao</button></div>
+<div class="m" style="font-size:12px;margin:2px 0 10px">Is phone se token aur yaad rakha hua sab mita deta hai. GitHub par kuch nahi mitta.</div>
+<div class="row"><button class="wb" id="w3" style="background:#8b0000;color:#fff">🗑️ Sab data delete karo</button></div>
+<div class="m" style="font-size:12px;margin:2px 0 6px">Mitega: bane hue saare video aur cover, views ki file, bhaagon ki list (episodes.json), aur video wali branches. <b>Wapas nahi aayega.</b> Nahi mitega: code, issue ke likhe jawab, jo video YouTube/Instagram par ja chuke hain, tumhare account.</div>
+<pre id="wlog" style="white-space:pre-wrap;font-size:12px;color:#cfa"></pre>
+</details>
 <details id="set"><summary>⚙️ Pehli baar setup (token)</summary>
 <small>GitHub token ek baar yahan daalo. Ye sirf is phone mein save rehta hai.</small>
 <input id="tok" type="password" placeholder="GitHub token (github_pat_...)">
@@ -327,5 +339,58 @@ $("r4").onclick=loadYT;
 function loadAll(){if(!gt())return;loadWork();loadVideos();loadYT()}
 loadAll();
 
+
+function armTap(btn,label,fn){
+  let armed=false,t=null;const orig=btn.textContent;
+  btn.onclick=async()=>{
+    if(!armed){armed=true;btn.textContent="⚠️ Pakka? Ek baar aur dabao";btn.style.outline="3px solid #fff";t=setTimeout(()=>{armed=false;btn.textContent=orig;btn.style.outline=""},6000);return}
+    clearTimeout(t);armed=false;btn.style.outline="";btn.disabled=true;btn.textContent="Ho raha hai…";
+    try{await fn()}catch(e){wl("❌ "+e.message)}
+    btn.disabled=false;btn.textContent=orig;
+  };
+}
+const wl=t=>{$("wlog").textContent+=t+"\n"};
+armTap($("w1"),"",async()=>{
+  $("wlog").textContent="";
+  const g=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/episodes.json?ref=main",{cache:"no-store",headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github+json"}});
+  const gj=await g.json();if(!g.ok)throw new Error(g.status===401||g.status===403?"token ko Contents: Read and write chahiye":"episodes.json nahi mili");
+  const d=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(gj.content.replace(/\n/g,"")),c=>c.charCodeAt(0))));
+  let n=0;for(const k in d){if(d[k].status!=="posted"&&d[k].auto===true){d[k].auto=false;n++}}
+  const b64=btoa(Array.from(new TextEncoder().encode(JSON.stringify(d,null,1)+"\n"),c=>String.fromCharCode(c)).join(""));
+  const pr=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/episodes.json",{method:"PUT",headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github+json","Content-Type":"application/json"},body:JSON.stringify({message:"WARNING: sab auto-post roka gaya",content:b64,sha:gj.sha,branch:"main"})});
+  if(!pr.ok)throw new Error("band nahi hua: "+pr.status);
+  wl("✅ "+n+" bhaag ka auto-post roka. Roz shaam 7 baje ab kuch post nahi hoga.");
+});
+armTap($("w2"),"",async()=>{
+  try{localStorage.clear()}catch(e){}
+  $("txt").value="";$("l2").innerHTML="";$("l3").innerHTML="";$("l4").innerHTML="";
+  wl("✅ Is phone se token aur sab mita diya. Dobara use karne ke liye naya token daalna padega. GitHub par token alag se delete karo.");
+});
+armTap($("w3"),"",async()=>{
+  $("wlog").textContent="";
+  const H={"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github+json","Content-Type":"application/json"};
+  const A="https://api.github.com/repos/"+OWNER+"/"+REPO;
+  let ok=0,bad=0;
+  wl("Files dhoondh raha hoon…");
+  const tr=await fetch(A+"/git/trees/main?recursive=1",{headers:H,cache:"no-store"});const tj=await tr.json();
+  if(!tr.ok)throw new Error("list nahi mili: "+(tj.message||tr.status)+" (token ko Contents: Read and write chahiye)");
+  const files=tj.tree.filter(x=>x.type==="blob"&&(/^(videos|stats)\//.test(x.path)||/^[^/]+\.(mp4|jpg|jpeg|png)$/i.test(x.path)));
+  wl(files.length+" file mitani hain");
+  for(const f of files){
+    const r=await fetch(A+"/contents/"+f.path.split("/").map(encodeURIComponent).join("/"),{method:"DELETE",headers:H,body:JSON.stringify({message:"WARNING: data delete",sha:f.sha,branch:"main"})});
+    if(r.ok)ok++;else{bad++;wl("✗ "+f.path+" ("+r.status+")")}
+  }
+  wl("Files: "+ok+" mit gayi, "+bad+" nahi mitin");
+  try{
+    const g=await fetch(A+"/contents/episodes.json?ref=main",{headers:H,cache:"no-store"});const gj=await g.json();
+    if(g.ok){const r=await fetch(A+"/contents/episodes.json",{method:"PUT",headers:H,body:JSON.stringify({message:"WARNING: bhaagon ki list saaf",content:btoa("{}\n"),sha:gj.sha,branch:"main"})});wl(r.ok?"✅ Bhaagon ki list saaf":"✗ list saaf nahi hui ("+r.status+")")}
+  }catch(e){wl("✗ list: "+e.message)}
+  const br=await fetch(A+"/branches?per_page=100",{headers:H,cache:"no-store"});const bj=await br.json();
+  let bo=0,bb=0;
+  if(br.ok){for(const b of bj){if(/^(render-|ai\/issue-)/.test(b.name)){
+    const r=await fetch(A+"/git/refs/heads/"+b.name.split("/").map(encodeURIComponent).join("/"),{method:"DELETE",headers:H});if(r.ok)bo++;else bb++}}}
+  wl("Branches: "+bo+" mit gayi, "+bb+" nahi mitin");
+  wl("\nPoora. Baaki kuch bacha ho to GitHub par dekho.");
+});
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script></body></html>
