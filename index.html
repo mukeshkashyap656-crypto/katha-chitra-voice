@@ -24,7 +24,7 @@ a{color:#f2c14e}
 #set input{width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #7a1a20;background:#1b0608;color:#f6e7c1}
 small{opacity:.75}
 #tabs{display:flex;gap:6px;width:100%;max-width:520px}
-#tabs button{flex:1;padding:10px 4px;border-radius:10px;border:2px solid #7a1a20;background:#1b0608;color:#f6e7c1;font-size:14px;font-weight:700}
+#tabs button{flex:1;padding:10px 2px;border-radius:10px;border:2px solid #7a1a20;background:#1b0608;color:#f6e7c1;font-size:12.5px;font-weight:700}
 #tabs button.on{background:#f2c14e;color:#3a0a0e;border-color:#f2c14e}
 .pane{width:100%;max-width:520px;display:none;flex-direction:column;align-items:center;gap:14px}
 .pane.on{display:flex}
@@ -37,7 +37,7 @@ small{opacity:.75}
 .card button+button{margin-left:8px;background:#7a1a20;color:#f2c14e}
 </style></head><body>
 <h1>🎙️ Katha Chitra · Bol kar kaam karao</h1>
-<div id="tabs"><button class="on" data-p="p1">🎙️ Bolo</button><button data-p="p2">📜 Kaam</button><button data-p="p3">🎬 Videos</button></div>
+<div id="tabs"><button class="on" data-p="p1">🎙️ Bolo</button><button data-p="p2">📜 Kaam</button><button data-p="p3">🎬 Videos</button><button data-p="p4">📺 YouTube</button></div>
 <div class="pane on" id="p1">
 <button id="mic" aria-label="mic">🎤</button>
 <div id="st">Mic dabao aur bolo</div>
@@ -47,6 +47,7 @@ small{opacity:.75}
 </div>
 <div class="pane" id="p2"><button class="b" id="r2">🔄 Naya dekho</button><div id="l2" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
 <div class="pane" id="p3"><button class="b" id="r3">🔄 Naye video dekho</button><div id="l3" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
+<div class="pane" id="p4"><button class="b" id="r4">🔄 Naya dekho</button><div id="l4" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
 <details id="set"><summary>⚙️ Pehli baar setup (token)</summary>
 <small>GitHub token ek baar yahan daalo. Ye sirf is phone mein save rehta hai.</small>
 <input id="tok" type="password" placeholder="GitHub token (github_pat_...)">
@@ -121,7 +122,7 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden){try{const
 document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));
   document.querySelectorAll(".pane").forEach(x=>x.classList.toggle("on",x.id===b.dataset.p));
-  if(b.dataset.p==="p2")loadWork();if(b.dataset.p==="p3")loadVideos();
+  if(b.dataset.p==="p2")loadWork();if(b.dataset.p==="p3")loadVideos();if(b.dataset.p==="p4")loadYT();
 });
 const esc=t=>t.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const clean=t=>t.replace(/<sub>[\s\S]*?<\/sub>/g,"").trim();
@@ -150,7 +151,7 @@ async function loadWork(){
   }catch(e){L.textContent="Nahi aaya: "+e.message}
 }
 async function fileBlob(branch,name){
-  const r=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+encodeURIComponent(name)+"?ref="+encodeURIComponent(branch),{cache:"no-store",headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github.raw"}});
+  const r=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+name.split("/").map(encodeURIComponent).join("/")+"?ref="+encodeURIComponent(branch),{cache:"no-store",headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github.raw"}});
   if(!r.ok)throw new Error(r.status===404?"file nahi mili (shayad hat gayi)":(r.status===403||r.status===401?"token ko Contents: Read-only ki ijazat chahiye":"error "+r.status));
   return URL.createObjectURL(await r.blob());
 }
@@ -189,5 +190,53 @@ async function loadVideos(){
   }catch(e){L.textContent="Nahi aaya: "+e.message}
 }
 $("r2").onclick=loadWork;$("r3").onclick=loadVideos;
+
+async function rawText(path,ref){
+  const r=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+path.split("/").map(encodeURIComponent).join("/")+"?ref="+ref,{cache:"no-store",headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github.raw"}});
+  if(!r.ok)throw new Error(r.status===404?path+" nahi mili":(r.status===401||r.status===403?"token ko Contents: Read-only ki ijazat chahiye":"error "+r.status));
+  return r.text();
+}
+async function loadYT(){
+  const L=$("l4");if(!gt()){L.textContent="Pehle token daalo";return}
+  L.textContent="Dekh raha hoon…";
+  try{
+    L.innerHTML="";
+    // pipeline
+    const pc=document.createElement("div");pc.className="card";
+    pc.innerHTML="<h3>⚙️ Roz ka system</h3><div class=t>Subah 6:30 → AI agla bhaag banata hai\nJaanch PASS → video taiyar (staged)\nShaam 7:00 → YouTube Short + Instagram Reel apne aap</div><div class=m id=runs style='margin-top:8px'>Chalne ka haal dekh raha hoon…</div>";
+    L.appendChild(pc);
+    // episodes
+    let eps={};
+    try{eps=JSON.parse(await rawText("episodes.json","main"))}catch(e){const w=document.createElement("div");w.className="card";w.textContent="Bhaagon ki list nahi aayi: "+e.message;L.appendChild(w)}
+    const ks=Object.keys(eps).sort((a,b)=>b-a);
+    for(const k of ks){
+      const e=eps[k];const c=document.createElement("div");c.className="card";
+      const posted=e.status==="posted"||e.youtube_id;
+      const st=posted?"✅ YouTube par ho gaya":(e.status==="ready"?"⏳ Taiyar · "+(e.date||"")+" shaam 7 baje jaayega":(e.auto?"🛠️ Ban raha hai":"📁 Purana (haath se)"));
+      let h="<h3>Bhag "+k+" · "+esc((e.title||e.file||"").replace(/ #shorts$/,"").slice(0,70))+"</h3><div class=m>"+st+(e.instagram_id?" · Instagram ✅":"")+"</div>";
+      if(e.youtube_id)h+='<a href="https://www.youtube.com/shorts/'+e.youtube_id+'" target="_blank">▶ YouTube par dekho</a><br>';
+      h+="<button class=pl>▶ Video chalao</button><button class=cp>Caption</button>";
+      c.innerHTML=h;
+      c.querySelector(".pl").onclick=async ev=>{
+        const b=ev.target;b.disabled=true;b.textContent="Aa raha hai…";
+        try{const u=await fileBlob("main",e.file);const vd=document.createElement("video");vd.src=u;vd.controls=true;vd.playsInline=true;b.replaceWith(vd)}
+        catch(err){b.disabled=false;b.textContent="▶ Phir koshish";const w=document.createElement("div");w.className="m";w.textContent=err.message;b.after(w)}
+      };
+      c.querySelector(".cp").onclick=ev=>{const d=document.createElement("div");d.className="t m";d.style.opacity=1;d.textContent=(e.caption||"")+"\n\nTags: "+(e.tags||[]).join(", ");ev.target.replaceWith(d)};
+      L.appendChild(c);
+    }
+    // stats
+    try{const t=await rawText("stats/STATS.md","main");const sc=document.createElement("div");sc.className="card";sc.innerHTML="<h3>📊 Asli views</h3><div class=t></div>";sc.querySelector(".t").textContent=t.slice(0,2000);L.appendChild(sc)}catch(e){}
+    // runs
+    try{
+      const rr=await api("/actions/runs?per_page=60");const rj=await rr.json();
+      if(!rr.ok)throw new Error(rj.message);
+      const want=["Katha Chitra daily","publish-day","publish-stage","post-instagram","Video Watchdog","collect-stats"],seen={},o=[];
+      for(const r of rj.workflow_runs){if(want.includes(r.name)&&!seen[r.name]){seen[r.name]=1;o.push((r.status!=="completed"?"🔄":r.conclusion==="success"?"✅":r.conclusion==="skipped"?"⏭️":"❌")+" "+r.name+" · "+fd(r.created_at))}}
+      $("runs").innerText=o.length?"Aakhri baar:\n"+o.join("\n"):"Abhi koi run nahi mila";
+    }catch(e){$("runs").textContent="Chalne ka haal: token ko Actions: Read-only ki ijazat chahiye"}
+  }catch(e){L.textContent="Nahi aaya: "+e.message}
+}
+$("r4").onclick=loadYT;
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script></body></html>
