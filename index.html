@@ -116,7 +116,7 @@ body{padding-bottom:110px}
 <button id="notok">🔑 Token nahi hai. Yahan dabake daalo, tabhi kaam hoga</button>
 <button id="hmic"><i>🎤</i><span>Dabao aur bolo</span></button>
 <button id="fab" aria-label="Mic">🎤</button>
-<div id="home"><div class="app" data-s="s1"><div class="ic"><i style="background:linear-gradient(135deg,#ff512f,#dd2476)">💬</i></div><span>Chat</span></div><div class="app" data-s="s2"><div class="ic"><i style="background:linear-gradient(135deg,#36d1dc,#5b86e5)">📜</i></div><span>AI ke kaam</span></div><div class="app" data-s="s3"><div class="ic"><i style="background:linear-gradient(135deg,#f7971e,#ffd200)">🎬</i></div><span>Video</span></div><div class="app" data-s="s4"><div class="ic"><i style="background:linear-gradient(135deg,#ff0844,#ff7a5c)">📺</i></div><span>YouTube</span></div><div class="app" data-s="s5"><div class="ic"><i style="background:linear-gradient(135deg,#f12711,#f5af19)">⚠️</i></div><span>Warning</span></div><div class="app" data-s="s6"><div class="ic"><i style="background:linear-gradient(135deg,#11998e,#38ef7d)">⚙️</i></div><span>Setup</span></div></div>
+<div id="home"><div class="app" data-s="s1"><div class="ic"><i style="background:linear-gradient(135deg,#ff512f,#dd2476)">💬</i></div><span>Chat</span></div><div class="app" data-s="s2"><div class="ic"><i style="background:linear-gradient(135deg,#36d1dc,#5b86e5)">📜</i></div><span>AI ke kaam</span></div><div class="app" data-s="s3"><div class="ic"><i style="background:linear-gradient(135deg,#f7971e,#ffd200)">🎬</i></div><span>Video</span></div><div class="app" data-s="s4"><div class="ic"><i style="background:linear-gradient(135deg,#ff0844,#ff7a5c)">📺</i></div><span>YouTube</span></div><div class="app" data-s="s5"><div class="ic"><i style="background:linear-gradient(135deg,#f12711,#f5af19)">⚠️</i></div><span>Warning</span></div><div class="app" data-s="s7"><div class="ic"><i style="background:linear-gradient(135deg,#7f00ff,#e100ff)">📝</i></div><span>Blog</span></div><div class="app" data-s="s6"><div class="ic"><i style="background:linear-gradient(135deg,#11998e,#38ef7d)">⚙️</i></div><span>Setup</span></div></div>
 <div id="ver"></div>
 <section class="scr" id="s1"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">💬 Chat</div><button class="bk sm" id="newchat" aria-label="Nayi chat" title="Nayi chat">➕</button><button class="bk sm" id="endchat" aria-label="Chat band karo" title="Chat band karo">✅</button></div>
 <div id="chatinfo"></div>
@@ -149,6 +149,9 @@ body{padding-bottom:110px}
 </details>
 
 </section>
+<section class="scr" id="s7"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">📝 Blog</div></div>
+<div class="pane" id="p7"><div id="bstat" class="card"></div><div class="row" style="display:flex;gap:8px;width:100%"><button class="b" id="r7" style="flex:1">🔄 Naya dekho</button><button class="b" id="bnow" style="flex:1">▶️ Abhi post banao</button></div><button class="b" id="bmode" style="width:100%"></button><div id="bmsg" class="m" style="min-height:18px"></div><div id="l7" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
+</section>
 <section class="scr" id="s6"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">⚙️ Setup</div></div>
 <details id="set" open><summary>⚙️ Pehli baar setup (token)</summary>
 <div style="font-size:14px;line-height:1.6;margin:8px 0;color:#f6e7c1"><b>Token kaise banao (ek baar ka kaam):</b><br>
@@ -166,7 +169,7 @@ body{padding-bottom:110px}
 </details>
 </section>
 <script>
-const VER="2026-11-24-k";
+const VER="2026-11-24-l";
 const OWNER="mukeshkashyap656-crypto",REPO="katha-chitra-videos";
 const $=id=>document.getElementById(id);
 const st=t=>$("st").textContent=t;
@@ -568,7 +571,36 @@ async function loadYT(){
 }
 $("r4").onclick=loadYT;
 let lastLoad=0;
-function loadAll(){if(!gt())return;lastLoad=Date.now();loadWork();loadVideos();loadYT()}
+
+const BWF="blog-daily.yml";
+const bTime=d=>new Date(d).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+async function getBlogMode(){try{const r=await api("/actions/variables/BLOG_MODE");if(r.ok){const j=await r.json();return j.value==="live"?"live":"draft"}}catch(e){}return "draft"}
+async function setBlogMode(v){let r=await api("/actions/variables/BLOG_MODE",{method:"PATCH",body:JSON.stringify({name:"BLOG_MODE",value:v})});if(r.status===404)r=await api("/actions/variables",{method:"POST",body:JSON.stringify({name:"BLOG_MODE",value:v})});if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(r.status===403||r.status===404?"Token ko Variables: Read and write chahiye (GitHub token ki permissions mein)":(j.message||"error "+r.status))}}
+async function loadBlog(){
+  const L=$("l7");if(!gt()){L.innerHTML="Pehle token daalo. <a href=\"#s6\">⚙️ Setup kholo</a>";$("bstat").textContent="";return}
+  try{
+    const [rr,mode]=await Promise.all([api("/actions/workflows/"+BWF+"/runs?per_page=1"),getBlogMode()]);
+    const bs=$("bstat");let run=null;
+    if(rr.ok){const j=await rr.json();run=(j.workflow_runs||[])[0]}
+    let line;
+    if(!rr.ok)line="⏳ Blog ka system abhi chalu nahi hua (pehle blog-bot branch main mein jodna hai).";
+    else if(!run)line="⏳ Abhi tak ek bhi baar nahi chala.";
+    else{const ok=run.conclusion==="success",run_=run.status!=="completed";line=(run_?"🔄 Abhi chal raha hai":ok?"✅ Aakhri baar theek chala":"❌ Aakhri baar atka")+" · "+bTime(run.created_at)+' · <a target="_blank" href="'+run.html_url+'">log dekho</a>'}
+    bs.innerHTML="<h3>Blog ka haal</h3><div>"+line+"</div><div class='m' style='margin-top:6px'>Roz subah 7:30 aur shaam 6:30 par 1-1 post. Abhi: <b>"+(mode==="live"?"🟢 seedha live":"📝 pehle draft")+"</b></div>";
+    const bm=$("bmode");bm.textContent=mode==="live"?"📝 Draft mode par wapas jao":"🟢 Seedha live karo (aap dekhe bina post jaayegi)";
+    twice(bm,async()=>{try{await setBlogMode(mode==="live"?"draft":"live");$("bmsg").textContent="✅ Mode badal gaya";loadBlog()}catch(e){$("bmsg").textContent="❌ "+e.message}});
+    $("bnow").onclick=async ev=>{const b=ev.currentTarget;try{await busyB(b,async()=>{const r=await api("/actions/workflows/"+BWF+"/dispatches",{method:"POST",body:JSON.stringify({ref:"main",inputs:{mode:mode}})});if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(r.status===403||r.status===404?"Token ko Actions: Read and write chahiye, aur blog system main mein hona chahiye":(j.message||"error "+r.status))}$("bmsg").textContent="✅ Shuru ho gaya. 5-10 minute baad 'Naya dekho' dabao"})}catch(e){$("bmsg").textContent="❌ "+e.message}};
+    let posts=[];try{posts=(JSON.parse(await rawText("blog/posted.json","main")).posted||[]).slice().reverse()}catch(e){}
+    L.innerHTML="";
+    if(!posts.length){L.innerHTML="<div class='card m'>Abhi tak koi post nahi bani.</div>";return}
+    for(const p of posts.slice(0,20)){const c=document.createElement("div");c.className="card";
+      const st_=p.url==="dry-run"?"🧪 Sirf jaanch (blog par nahi gayi)":(p.mode==="live"?"🟢 Live":"📝 Draft (Blogger mein dekho)");
+      c.innerHTML="<h3>"+esc(p.blog_title||p.title)+"</h3><div class='m'>"+esc(p.date||"")+" · "+st_+"</div>"+(p.url&&/^https?:/.test(p.url)?'<a target="_blank" href="'+esc(p.url)+'">🔗 Post kholo</a>':"");
+      L.appendChild(c)}
+  }catch(e){$("bstat").textContent="❌ "+e.message}
+}
+$("r7").onclick=loadBlog;
+function loadAll(){if(!gt())return;lastLoad=Date.now();loadWork();loadVideos();loadYT();loadBlog()}
 loadAll();
 
 
@@ -626,7 +658,7 @@ armTap($("w3"),"",async()=>{
 });
 function show(id){document.querySelectorAll(".scr").forEach(x=>x.style.display=x.id===id?"flex":"none");$("home").style.display=id?"none":"grid";$("h1").style.display=id?"none":"block";$("ver").style.display=id?"none":"block";if(id==="s1"){chatSig="";loadChat();clearInterval(pollT);pollT=setInterval(()=>{if(!document.hidden&&location.hash==="#s1")loadChat()},6000)}else{clearInterval(pollT)}
 $("hmic").style.display=id?"none":"flex";$("notok").style.display=(!id&&!gt())?"block":"none";$("fab").style.display=(id&&id!=="s1")?"flex":"none";window.scrollTo(0,0)}
-function route(){const h=location.hash.slice(1);show(/^s[1-6]$/.test(h)?h:"")}
+function route(){const h=location.hash.slice(1);show(/^s[1-7]$/.test(h)?h:"")}
 window.addEventListener("hashchange",route);
 function goMic(){location.hash="s1";setTimeout(()=>{if(!on)$("mic").click()},150)}
 $("notok").onclick=()=>{location.hash="s6"};$("hmic").onclick=goMic;$("fab").onclick=goMic;
