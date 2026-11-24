@@ -36,8 +36,39 @@ small{opacity:.75}
 .card button{margin-top:8px;padding:10px 14px;border-radius:10px;border:0;background:#f2c14e;color:#3a0a0e;font-weight:700;font-size:15px}
 .card button+button{margin-left:8px;background:#7a1a20;color:#f2c14e}
 .row.w{flex-wrap:wrap}.row.w button{flex:1 1 45%}.card .dng{background:#8b0000;color:#fff}.card .m.ok{color:#cfa;opacity:1}
+
+/* ===== RGB + app-icon look ===== */
+:root{--rgb:linear-gradient(90deg,#ff0040,#ff9500,#ffee00,#00ff6a,#00d4ff,#6a5cff,#ff00d4,#ff0040)}
+body{background:radial-gradient(circle at 20% 0%,#3a0f2e 0,#1a0510 45%,#0b0208 100%) fixed}
+h1{font-size:21px;text-align:center;background:var(--rgb);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rgbpos 6s linear infinite}
+@keyframes rgbpos{to{background-position:300% 0}}
+@keyframes rgbpos2{to{background-position:0 0,300% 0}}
+@keyframes hue{to{filter:hue-rotate(360deg)}}
+#home{width:100%;max-width:520px;display:grid;grid-template-columns:repeat(3,1fr);gap:22px 10px;margin-top:14px}
+.app{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+.app .ic{position:relative;width:84px;height:84px;border-radius:24px;padding:3px;background:var(--rgb);background-size:300% 100%;animation:rgbpos 4s linear infinite}
+.app .ic::after{content:"";position:absolute;inset:-2px;border-radius:26px;background:inherit;filter:blur(12px);opacity:.75;z-index:-1;animation:inherit}
+.app .ic i{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:21px;font-style:normal;font-size:40px;box-shadow:inset 0 2px 8px rgba(255,255,255,.35)}
+.app:active .ic{transform:scale(.92)}
+.app span{font-size:13px;font-weight:700;color:#fff;text-align:center;text-shadow:0 0 8px rgba(255,255,255,.4)}
+.app .bd{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;border-radius:11px;background:#ff1744;color:#fff;font-size:12px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 5px;border:2px solid #1a0510;z-index:2}
+.scr{width:100%;max-width:520px;display:none;flex-direction:column;align-items:center;gap:14px}
+.bar{width:100%;max-width:520px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5;padding:8px 0;background:linear-gradient(#1a0510 70%,transparent)}
+.bar .bk{width:46px;height:46px;border-radius:14px;border:0;font-size:22px;font-weight:800;color:#fff;background:var(--rgb);background-size:300% 100%;animation:rgbpos 4s linear infinite;cursor:pointer}
+.bar .tt{font-size:19px;font-weight:800;color:#fff;text-shadow:0 0 10px #ff00d4,0 0 18px #00d4ff}
+.card,textarea,#rep,details#warn,details#set{border:2px solid transparent!important;background:linear-gradient(#1b0608,#1b0608) padding-box,var(--rgb) border-box!important;background-size:auto,300% 100%!important;animation:rgbpos2 7s linear infinite}
+textarea{background:linear-gradient(#1b0608,#1b0608) padding-box,var(--rgb) border-box!important}
+#mic{border:0;background:linear-gradient(#7a1a20,#7a1a20) padding-box,var(--rgb) border-box;border:5px solid transparent;background-size:auto,300% 100%;animation:rgbpos2 3s linear infinite;box-shadow:0 0 28px rgba(255,0,212,.55),0 0 50px rgba(0,212,255,.35)}
+#mic.on{background:linear-gradient(#c0392b,#c0392b) padding-box,var(--rgb) border-box;background-size:auto,300% 100%;animation:p 1.1s infinite,rgbpos2 2s linear infinite}
+button.b,.wb,.card button,.ctl .jc,.row button{position:relative}
+button.b{background:var(--rgb);background-size:300% 100%;animation:rgbpos 5s linear infinite;color:#1a0510;text-shadow:0 0 6px rgba(255,255,255,.6)}
+.card button{box-shadow:0 0 10px rgba(255,255,255,.18)}
+.card .dng,.dng{background:linear-gradient(90deg,#8b0000,#ff1744)!important;color:#fff!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style></head><body>
-<h1>🎙️ Katha Chitra · Bol kar kaam karao</h1>
+<h1 id="h1"><span style="-webkit-text-fill-color:initial">🎙️</span> Katha Chitra</h1>
+<div id="home"><div class="app" data-s="s1"><div class="ic"><i style="background:linear-gradient(135deg,#ff512f,#dd2476)">🎤</i></div><span>Bolo</span></div><div class="app" data-s="s2"><div class="ic"><i style="background:linear-gradient(135deg,#36d1dc,#5b86e5)">📜</i></div><span>AI ke kaam</span></div><div class="app" data-s="s3"><div class="ic"><i style="background:linear-gradient(135deg,#f7971e,#ffd200)">🎬</i></div><span>Video</span></div><div class="app" data-s="s4"><div class="ic"><i style="background:linear-gradient(135deg,#ff0844,#ff7a5c)">📺</i></div><span>YouTube</span></div><div class="app" data-s="s5"><div class="ic"><i style="background:linear-gradient(135deg,#f12711,#f5af19)">⚠️</i></div><span>Warning</span></div><div class="app" data-s="s6"><div class="ic"><i style="background:linear-gradient(135deg,#11998e,#38ef7d)">⚙️</i></div><span>Setup</span></div></div>
+<section class="scr" id="s1"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">🎤 Bolo</div></div>
 <div class="pane" id="p1">
 <button id="mic" aria-label="mic">🎤</button>
 <div id="st">Mic dabao aur bolo</div>
@@ -45,14 +76,19 @@ small{opacity:.75}
 <button class="b" id="send">Bhejo (AI ko kaam do)</button>
 <div id="rep"></div>
 </div>
-<div class="sec">📜 AI ke kaam aur jawab</div>
-<div class="pane" id="p2"><button class="b" id="r2">🔄 Naya dekho</button><div id="l2" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
-<div class="sec">🎬 Bane hue video</div>
-<div class="pane" id="p3"><button class="b" id="r3">🔄 Naye video dekho</button><div id="l3" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
-<div class="sec">📺 YouTube par roz ka system</div>
-<div class="pane" id="p4"><button class="b" id="r4">🔄 Naya dekho</button><div id="l4" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
 
-<details id="warn" style="width:100%;max-width:520px;margin-top:18px;border:2px solid #7a1a20;border-radius:12px;padding:10px;background:#1a0507">
+</section>
+<section class="scr" id="s2"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">📜 AI ke kaam</div></div>
+<div class="pane" id="p2"><button class="b" id="r2">🔄 Naya dekho</button><div id="l2" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
+</section>
+<section class="scr" id="s3"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">🎬 Video</div></div>
+<div class="pane" id="p3"><button class="b" id="r3">🔄 Naye video dekho</button><div id="l3" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
+</section>
+<section class="scr" id="s4"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">📺 YouTube</div></div>
+<div class="pane" id="p4"><button class="b" id="r4">🔄 Naya dekho</button><div id="l4" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
+</section>
+<section class="scr" id="s5"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">⚠️ Warning</div></div>
+<details id="warn" open style="width:100%;max-width:520px;margin-top:18px;border:2px solid #7a1a20;border-radius:12px;padding:10px;background:#1a0507">
 <summary style="color:#ff8a7a;font-weight:700;font-size:16px">⚠️ Warning (sirf khatre mein kholo)</summary>
 <div style="font-size:13px;line-height:1.5;margin:10px 0;color:#f6e7c1">Agar tumhara Gmail ya GitHub hack ho jaaye, to <b>pehle</b> GitHub ka password badlo aur GitHub → Settings → Developer settings mein <b>voice token delete</b> karo. Phir yahan ke button. Har button <b>do baar</b> dabana padta hai.</div>
 <div class="row"><button class="wb" id="w1">🛑 Sab post turant roko</button></div>
@@ -63,11 +99,15 @@ small{opacity:.75}
 <div class="m" style="font-size:12px;margin:2px 0 6px">Mitega: bane hue saare video aur cover, views ki file, bhaagon ki list (episodes.json), aur video wali branches. <b>Wapas nahi aayega.</b> Nahi mitega: code, issue ke likhe jawab, jo video YouTube/Instagram par ja chuke hain, tumhare account.</div>
 <pre id="wlog" style="white-space:pre-wrap;font-size:12px;color:#cfa"></pre>
 </details>
+
+</section>
+<section class="scr" id="s6"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">⚙️ Setup</div></div>
 <details id="set"><summary>⚙️ Pehli baar setup (token)</summary>
 <small>GitHub token ek baar yahan daalo. Ye sirf is phone mein save rehta hai.</small>
 <input id="tok" type="password" placeholder="GitHub token (github_pat_...)">
 <button class="b" id="save" style="padding:10px;font-size:15px">Save karo</button>
 </details>
+</section>
 <script>
 const OWNER="mukeshkashyap656-crypto",REPO="katha-chitra-videos";
 const $=id=>document.getElementById(id);
@@ -201,6 +241,22 @@ async function delIssue(i,c){
   c.innerHTML="<div class='m ok'>🗑 Issue #"+i.number+" hata diya. GitHub ne poora mitane ki ijazat nahi di ("+esc(why)+"), isliye band karke yahan se chhupa diya.</div>";
   setTimeout(()=>c.remove(),5000);
 }
+const GH=()=>({"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github+json","Content-Type":"application/json"});
+const CA=path=>"https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+path.split("/").map(encodeURIComponent).join("/");
+async function delFile(path){
+  const g=await fetch(CA(path)+"?ref=main",{headers:GH(),cache:"no-store"});
+  if(g.status===404)return "pehle se nahi thi";
+  if(!g.ok)throw new Error(path+": "+(g.status===401||g.status===403?"token ko Contents: Read and write chahiye":"error "+g.status));
+  const gj=await g.json();
+  const r=await fetch(CA(path),{method:"DELETE",headers:GH(),body:JSON.stringify({message:"Page se delete: "+path,sha:gj.sha,branch:"main"})});
+  if(!r.ok)throw new Error(path+" nahi mitti ("+r.status+")");
+  return "mit gayi";
+}
+async function delBranch(name){
+  const r=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/git/refs/heads/"+name.split("/").map(encodeURIComponent).join("/"),{method:"DELETE",headers:GH()});
+  if(r.ok||r.status===422||r.status===404)return r.ok?"mit gayi":"pehle se nahi thi";
+  throw new Error("branch "+name+" nahi mitti ("+r.status+(r.status===403||r.status===401?", token ko Contents: Read and write chahiye":"")+")");
+}
 async function loadWork(){
   const L=$("l2");if(!gt()){L.textContent="Pehle token daalo";return}
   L.textContent="Dekh raha hoon…";
@@ -270,9 +326,16 @@ async function loadVideos(){
         c.querySelector(".dc").onclick=e=>busy(e.target,"Aa raha hai…",async()=>{const u=await gc();saveAs(u,v.cover);msg("✅ Cover download shuru")});
       }
       twice(c.querySelector(".dl"),async()=>{
-        const r=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/git/refs/heads/"+v.b.split("/").map(encodeURIComponent).join("/"),{method:"DELETE",headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github+json"}});
-        if(r.ok||r.status===422){c.innerHTML="<div class='m ok'>🗑 "+esc(v.f)+" mita diya</div>";setTimeout(()=>c.remove(),2500)}
-        else msg("❌ Nahi mita ("+r.status+"). Token ko Contents: Read and write chahiye");
+        try{
+          await delBranch(v.b);
+          let extra="";
+          try{
+            const bn=(v.b.match(/bhag(\d+)/i)||[])[1];
+            const eps=JSON.parse(await rawText("episodes.json","main"));
+            if(bn&&eps[bn]&&eps[bn].status!=="posted")extra=" Dhyan do: Bhag "+bn+" ka taiyar (post hone wala) video abhi 📺 YouTube wale hisse mein hai. Use wahan se delete karoge to wo post nahi hoga.";
+          }catch(x){}
+          c.innerHTML="<div class='m ok'>🗑 "+esc(v.f)+" GitHub se mita diya."+esc(extra)+"</div>";setTimeout(()=>c.remove(),extra?9000:2500);
+        }catch(err){msg("❌ "+err.message)}
       });
       c.appendChild(fixBox(v.n));
       L.appendChild(c);
@@ -293,7 +356,7 @@ async function saveEps(k,fn){
   if(!g.ok)throw new Error(g.status===404?"episodes.json nahi mili":(g.status===401||g.status===403?"token ko Contents: Read and write chahiye":"error "+g.status));
   const bin=atob(gj.content.replace(/\n/g,""));const txt=new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)));
   const d=JSON.parse(txt);if(!d[k])throw new Error("Bhag "+k+" list mein nahi");
-  fn(d[k]);
+  if(fn(d[k])==="del")delete d[k];
   const out=JSON.stringify(d,null,1)+"\n";
   const b64=btoa(Array.from(new TextEncoder().encode(out),c=>String.fromCharCode(c)).join(""));
   const pr=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/episodes.json",{method:"PUT",headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github+json","Content-Type":"application/json"},body:JSON.stringify({message:"Bhag "+k+": page se badlav",content:b64,sha:gj.sha,branch:"main"})});
@@ -321,6 +384,7 @@ async function loadYT(){
       h+="<button class=pl>▶ Video chalao</button><button class=dv>⤓ Video download</button><button class=cp>Caption</button><div class='m ym'></div>";
       const canEdit=!posted&&e.auto!==undefined;
       if(canEdit){h+="<div class=ctl><div class=m>"+(e.auto===false?"⏸ ROKA HUA — post nahi hoga":"Post ki tarikh")+"</div><input type=date class=dt value='"+(e.date||"")+"'><div class=row><button class=sd>📅 Tarikh badlo</button><button class=ps>"+(e.auto===false?"▶ Chalu karo":"⏸ Rok do")+"</button></div><div class=row><button class=pn>🚀 Abhi post karo</button><button class=rb>🔁 Dobara banao</button></div><div class=m id=msg"+k+"></div></div>"}
+      h+="<div class=row><button class='dng xd'>🗑 GitHub se video delete</button></div><div class='m xm'>"+(posted?"YouTube/Instagram par jo ja chuka wo nahi mitega, sirf GitHub ki file mitegi.":"Delete karne par ye bhaag post hone se hat jaayega (auto-post isse nahi uthayega).")+"</div>";
       c.innerHTML=h;
       c.querySelector(".pl").onclick=async ev=>{
         const b=ev.target;b.disabled=true;b.textContent="Aa raha hai…";
@@ -333,7 +397,7 @@ async function loadYT(){
         const edit=async(fn,done)=>{try{msg("Ho raha hai…");await saveEps(k,fn);msg(done);setTimeout(loadYT,1200)}catch(er){msg("❌ "+er.message)}};
         c.querySelector(".sd").onclick=()=>{const v=c.querySelector(".dt").value;if(!v){msg("Tarikh chuno");return}edit(x=>{x.date=v},"✅ Tarikh badal gayi: "+v)};
         c.querySelector(".ps").onclick=()=>edit(x=>{x.auto=(x.auto===false)},e.auto===false?"✅ Phir chalu":"✅ Rok diya");
-        c.querySelector(".rb").onclick=()=>{$("txt").value="@ai Bhag "+k+" dobara banao";window.scrollTo({top:0,behavior:"smooth"});st("Upar text bhar diya. Chaho to badlo, phir Bhejo dabao")};
+        c.querySelector(".rb").onclick=()=>{$("txt").value="@ai Bhag "+k+" dobara banao";location.hash="s1";window.scrollTo({top:0,behavior:"smooth"});st("Text bhar diya. Chaho to badlo, phir Bhejo dabao")};
         let armed=false;
         c.querySelector(".pn").onclick=async ev=>{
           const b=ev.target;
@@ -351,6 +415,20 @@ async function loadYT(){
           }catch(er){msg("❌ "+er.message);b.disabled=false}
         };
       }
+      twice(c.querySelector(".xd"),async()=>{
+        const xm=c.querySelector(".xm"),log=[];
+        try{
+          if(!posted){await saveEps(k,()=>"del");log.push("✅ Bhaag list se hata (ab auto-post nahi karega)")}
+          for(const f of [e.file,e.cover]){
+            if(!f)continue;
+            if(Object.keys(eps).some(o=>o!==k&&(eps[o].file===f||eps[o].cover===f))){log.push("⏭️ "+f+" doosre bhaag ki bhi hai, rakhi");continue}
+            const res=await delFile(f);log.push((res==="mit gayi"?"✅ ":"ℹ️ ")+f+" "+res);
+          }
+          try{await delBranch("render-bhag"+k);log.push("✅ render-bhag"+k+" branch bhi gaya")}catch(er){log.push("ℹ️ "+er.message)}
+          c.innerHTML="<div class='m ok' style='white-space:pre-wrap'>🗑 Bhag "+k+" GitHub se delete\n"+esc(log.join("\n"))+"</div>";
+          setTimeout(loadYT,6000);
+        }catch(er){xm.textContent="❌ "+er.message+(log.length?"\n"+log.join("\n"):"");xm.style.whiteSpace="pre-wrap"}
+      });
       c.appendChild(fixBox(null,k));
       c.querySelector(".cp").onclick=ev=>{const d=document.createElement("div");d.className="t m";d.style.opacity=1;d.textContent=(e.caption||"")+"\n\nTags: "+(e.tags||[]).join(", ");ev.target.replaceWith(d)};
       L.appendChild(c);
@@ -424,5 +502,11 @@ armTap($("w3"),"",async()=>{
   wl("Branches: "+bo+" mit gayi, "+bb+" nahi mitin");
   wl("\nPoora. Baaki kuch bacha ho to GitHub par dekho.");
 });
+function show(id){document.querySelectorAll(".scr").forEach(x=>x.style.display=x.id===id?"flex":"none");$("home").style.display=id?"none":"grid";$("h1").style.display=id?"none":"block";window.scrollTo(0,0)}
+function route(){const h=location.hash.slice(1);show(/^s[1-6]$/.test(h)?h:"")}
+window.addEventListener("hashchange",route);
+document.querySelectorAll(".app").forEach(a=>a.onclick=()=>{location.hash=a.dataset.s});
+document.querySelectorAll(".bk").forEach(b=>b.onclick=()=>{location.hash=""});
+route();if(!gt()&&!location.hash)location.hash="s6";
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script></body></html>
