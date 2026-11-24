@@ -66,7 +66,7 @@ button.b{background:var(--rgb);background-size:300% 100%;animation:rgbpos 5s lin
 .card .dng,.dng{background:linear-gradient(90deg,#8b0000,#ff1744)!important;color:#fff!important}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style></head><body>
-<h1 id="h1"><span style="-webkit-text-fill-color:initial">🎙️</span> Katha Chitra</h1>
+<h1 id="h1">Katha Chitra</h1>
 <div id="home"><div class="app" data-s="s1"><div class="ic"><i style="background:linear-gradient(135deg,#ff512f,#dd2476)">🎤</i></div><span>Bolo</span></div><div class="app" data-s="s2"><div class="ic"><i style="background:linear-gradient(135deg,#36d1dc,#5b86e5)">📜</i></div><span>AI ke kaam</span></div><div class="app" data-s="s3"><div class="ic"><i style="background:linear-gradient(135deg,#f7971e,#ffd200)">🎬</i></div><span>Video</span></div><div class="app" data-s="s4"><div class="ic"><i style="background:linear-gradient(135deg,#ff0844,#ff7a5c)">📺</i></div><span>YouTube</span></div><div class="app" data-s="s5"><div class="ic"><i style="background:linear-gradient(135deg,#f12711,#f5af19)">⚠️</i></div><span>Warning</span></div><div class="app" data-s="s6"><div class="ic"><i style="background:linear-gradient(135deg,#11998e,#38ef7d)">⚙️</i></div><span>Setup</span></div></div>
 <section class="scr" id="s1"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">🎤 Bolo</div></div>
 <div class="pane" id="p1">
@@ -79,7 +79,7 @@ button.b{background:var(--rgb);background-size:300% 100%;animation:rgbpos 5s lin
 
 </section>
 <section class="scr" id="s2"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">📜 AI ke kaam</div></div>
-<div class="pane" id="p2"><button class="b" id="r2">🔄 Naya dekho</button><div id="l2" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
+<div class="pane" id="p2"><button class="b" id="r2">🔄 Naya dekho</button><button class="b" id="unh" style="display:none"></button><div id="l2" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
 </section>
 <section class="scr" id="s3"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">🎬 Video</div></div>
 <div class="pane" id="p3"><button class="b" id="r3">🔄 Naye video dekho</button><div id="l3" style="width:100%;display:flex;flex-direction:column;gap:10px"></div></div>
@@ -102,10 +102,11 @@ button.b{background:var(--rgb);background-size:300% 100%;animation:rgbpos 5s lin
 
 </section>
 <section class="scr" id="s6"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">⚙️ Setup</div></div>
-<details id="set"><summary>⚙️ Pehli baar setup (token)</summary>
+<details id="set" open><summary>⚙️ Pehli baar setup (token)</summary>
 <small>GitHub token ek baar yahan daalo. Ye sirf is phone mein save rehta hai.</small>
 <input id="tok" type="password" placeholder="GitHub token (github_pat_...)">
 <button class="b" id="save" style="padding:10px;font-size:15px">Save karo</button>
+<button class="b" id="chk" style="padding:10px;font-size:15px;margin-top:10px">🔍 Token jaanch</button><pre id="chkout" style="white-space:pre-wrap;font-size:13px;color:#cfa"></pre>
 </details>
 </section>
 <script>
@@ -114,7 +115,7 @@ const $=id=>document.getElementById(id);
 const st=t=>$("st").textContent=t;
 const gt=()=>{try{return localStorage.getItem("kc_tok")||""}catch(e){return ""}};
 if(!gt())$("set").open=true;
-$("save").onclick=()=>{try{localStorage.setItem("kc_tok",$("tok").value.trim());$("tok").value="";$("set").open=false;st("Token save ho gaya ✅");setTimeout(loadAll,200)}catch(e){st("Save nahi hua")}};
+$("save").onclick=()=>{try{localStorage.setItem("kc_tok",$("tok").value.trim());$("tok").value="";st("Token save ho gaya ✅");setTimeout(loadAll,200)}catch(e){st("Save nahi hua")}};
 
 // ---- voice ----
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -225,6 +226,8 @@ function fixBox(issue,bhag){
   };
   return w;
 }
+const badge=(i,n)=>{const el=document.querySelector('.app[data-s=s'+i+'] .bd');if(!el)return;el.textContent=n;el.style.display=n>0?'flex':'none'};
+async function copyText(t){try{await navigator.clipboard.writeText(t);return true}catch(e){try{const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();const ok=document.execCommand('copy');x.remove();return ok}catch(e2){return false}}}
 const getHid=()=>{try{return JSON.parse(localStorage.getItem("kc_hide")||"[]")}catch(e){return []}};
 function twice(btn,fn){let armed=false,t=null;const o=btn.textContent;btn.onclick=async()=>{if(!armed){armed=true;btn.textContent="⚠️ Pakka? Phir dabao";t=setTimeout(()=>{armed=false;btn.textContent=o},6000);return}clearTimeout(t);armed=false;btn.disabled=true;btn.textContent="Ho raha hai…";try{await fn()}catch(e){}btn.disabled=false;btn.textContent=o}}
 function saveAs(url,name){const x=document.createElement("a");x.href=url;x.download=name;document.body.appendChild(x);x.click();x.remove()}
@@ -265,6 +268,8 @@ async function loadWork(){
     if(!r.ok)throw new Error(j.message);
     L.innerHTML="";
     const hid=getHid();
+    const un=$("unh");un.style.display=hid.length?"block":"none";un.textContent="👁 Chhupe hue "+hid.length+" issue wapas dikhao";un.onclick=()=>{try{localStorage.removeItem("kc_hide")}catch(e){}loadWork()};
+    badge(2,j.filter(i=>!i.pull_request&&i.state==="open"&&!hid.includes(i.number)).length);
     for(const i of j){
       if(i.pull_request||hid.includes(i.number))continue;
       const c=document.createElement("div");c.className="card";
@@ -304,10 +309,11 @@ async function loadVideos(){
       }
     }
     L.innerHTML="";
+    badge(3,vids.length);
     if(!vids.length){L.textContent="Abhi koi video nahi bana";return}
     for(const v of vids.slice(0,15)){
       const c=document.createElement("div");c.className="card";
-      c.innerHTML="<h3>🎬 "+esc(v.f.replace(/\.mp4$/,"").replace(/_/g," "))+"</h3><div class=m>Issue #"+v.n+" · "+fd(v.at)+"</div><div class='row w'><button class=pl>▶ Chalao</button><button class=dv>⤓ Video download</button>"+(v.cover?"<button class=cv>🖼 Cover dekho</button><button class=dc>⤓ Cover download</button>":"")+"<button class='dng dl'>🗑 Video delete</button></div><div class='m msg'></div><div class=slot></div>";
+      c.innerHTML="<h3>🎬 "+esc(v.f.replace(/\.mp4$/,"").replace(/_/g," "))+"</h3><div class=m>Issue #"+v.n+" · "+fd(v.at)+"</div><div class='row w'><button class=pl>▶ Chalao</button><button class=dv>⤓ Video download</button><button class=sh>📤 Share</button>"+(v.cover?"<button class=cv>🖼 Cover dekho</button><button class=dc>⤓ Cover download</button>":"")+"<button class='dng dl'>🗑 Video delete</button></div><div class='m msg'></div><div class=slot></div>";
       const msg=t=>{c.querySelector(".msg").textContent=t},slot=c.querySelector(".slot");
       let vu=null,cu=null;
       const gv=async()=>vu||(vu=await fileBlob(v.b,v.f));
@@ -319,6 +325,11 @@ async function loadVideos(){
         vd.scrollIntoView({behavior:"smooth",block:"center"});try{await vd.play()}catch(x){}
       });
       c.querySelector(".dv").onclick=e=>busy(e.target,"Aa raha hai…",async()=>{const u=await gv();saveAs(u,v.f);msg("✅ Video download shuru")});
+      c.querySelector(".sh").onclick=e=>busy(e.target,"Aa raha hai…",async()=>{
+        const u=await gv();const f=new File([await (await fetch(u)).blob()],v.f,{type:"video/mp4"});
+        if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:v.f})}catch(x){if(x.name!=="AbortError")throw x}}
+        else{saveAs(u,v.f);msg("Is browser mein share nahi chalta, isliye download kar diya")}
+      });
       if(v.cover){
         c.querySelector(".cv").onclick=e=>busy(e.target,"Aa raha hai…",async()=>{
           const u=await gc();if(!slot.querySelector("img")){const im=document.createElement("img");im.src=u;slot.appendChild(im)}
@@ -342,6 +353,16 @@ async function loadVideos(){
     }
   }catch(e){L.textContent="Nahi aaya: "+e.message}
 }
+$("chk").onclick=async()=>{
+  const o=$("chkout");if(!gt()){o.textContent="Pehle token daalo aur Save karo";return}
+  o.textContent="Dekh raha hoon…";const out=[];
+  const t=async(name,url,fix)=>{try{const r=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+url,{cache:"no-store",headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github+json"}});
+    out.push(r.ok?"✅ "+name+" padh sakta hai":(r.status===401?"❌ Token galat ya khatam ho gaya. Naya token banao":"❌ "+name+": "+fix+" ("+r.status+")"))}catch(e){out.push("❌ "+name+": internet/network dikkat")}o.textContent=out.join("\n")};
+  await t("Issues","/issues?per_page=1","token mein Issues ki ijazat jodo (bhejne ke liye Read and write)");
+  await t("Contents (video/list)","/contents/episodes.json?ref=main","token mein Contents ki ijazat jodo (download ke liye Read-only, delete/tarikh ke liye Read and write)");
+  await t("Actions (haal)","/actions/runs?per_page=1","token mein Actions ki ijazat jodo (Abhi post karo ke liye Read and write)");
+  out.push("ℹ️ Likhne ki ijazat (delete, tarikh badalna) yahan se nahi dikhti. Wo pehli baar use par pata chalegi.");o.textContent=out.join("\n");
+};
 $("r2").onclick=loadWork;$("r3").onclick=loadVideos;
 
 async function rawText(path,ref){
@@ -381,7 +402,7 @@ async function loadYT(){
       const stt=posted?"✅ YouTube par ho gaya":(e.status==="ready"?"⏳ Taiyar · "+(e.date||"")+" shaam 7 baje jaayega":(e.auto?"🛠️ Ban raha hai":"📁 Purana (haath se)"));
       let h="<h3>Bhag "+k+" · "+esc((e.title||e.file||"").replace(/ #shorts$/,"").slice(0,70))+"</h3><div class=m>"+stt+(e.instagram_id?" · Instagram ✅":"")+"</div>";
       if(e.youtube_id)h+='<a href="https://www.youtube.com/shorts/'+e.youtube_id+'" target="_blank">▶ YouTube par dekho</a><br>';
-      h+="<button class=pl>▶ Video chalao</button><button class=dv>⤓ Video download</button><button class=cp>Caption</button><div class='m ym'></div>";
+      h+="<button class=pl>▶ Video chalao</button><button class=dv>⤓ Video download</button><button class=cp>Caption</button><button class=cc>📋 Copy</button><div class='m ym'></div>";
       const canEdit=!posted&&e.auto!==undefined;
       if(canEdit){h+="<div class=ctl><div class=m>"+(e.auto===false?"⏸ ROKA HUA — post nahi hoga":"Post ki tarikh")+"</div><input type=date class=dt value='"+(e.date||"")+"'><div class=row><button class=sd>📅 Tarikh badlo</button><button class=ps>"+(e.auto===false?"▶ Chalu karo":"⏸ Rok do")+"</button></div><div class=row><button class=pn>🚀 Abhi post karo</button><button class=rb>🔁 Dobara banao</button></div><div class=m id=msg"+k+"></div></div>"}
       h+="<div class=row><button class='dng xd'>🗑 GitHub se video delete</button></div><div class='m xm'>"+(posted?"YouTube/Instagram par jo ja chuka wo nahi mitega, sirf GitHub ki file mitegi.":"Delete karne par ye bhaag post hone se hat jaayega (auto-post isse nahi uthayega).")+"</div>";
@@ -430,9 +451,11 @@ async function loadYT(){
         }catch(er){xm.textContent="❌ "+er.message+(log.length?"\n"+log.join("\n"):"");xm.style.whiteSpace="pre-wrap"}
       });
       c.appendChild(fixBox(null,k));
+      c.querySelector(".cc").onclick=async ev=>{const ym=c.querySelector(".ym");const t=(e.title?e.title+"\n\n":"")+(e.caption||"")+"\n\n"+(Array.isArray(e.tags)?e.tags.join(" "):(e.tags||""));ym.textContent=(await copyText(t))?"✅ Caption, title aur tags copy ho gaye":"❌ Copy nahi hua, Caption dabake haath se copy karo"};
       c.querySelector(".cp").onclick=ev=>{const d=document.createElement("div");d.className="t m";d.style.opacity=1;d.textContent=(e.caption||"")+"\n\nTags: "+(e.tags||[]).join(", ");ev.target.replaceWith(d)};
       L.appendChild(c);
     }
+    badge(4,ks.filter(k=>eps[k].status==="ready"&&eps[k].auto!==false).length);
     // stats
     try{const t=await rawText("stats/STATS.md","main");const sc=document.createElement("div");sc.className="card";sc.innerHTML="<h3>📊 Asli views</h3><div class=t></div>";sc.querySelector(".t").textContent=t.slice(0,2000);L.appendChild(sc)}catch(e){}
     // runs
@@ -507,6 +530,7 @@ function route(){const h=location.hash.slice(1);show(/^s[1-6]$/.test(h)?h:"")}
 window.addEventListener("hashchange",route);
 document.querySelectorAll(".app").forEach(a=>a.onclick=()=>{location.hash=a.dataset.s});
 document.querySelectorAll(".bk").forEach(b=>b.onclick=()=>{location.hash=""});
+document.querySelectorAll(".app .ic").forEach(ic=>ic.insertAdjacentHTML("beforeend","<b class=bd></b>"));
 route();if(!gt()&&!location.hash)location.hash="s6";
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script></body></html>
