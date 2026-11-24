@@ -53,7 +53,7 @@ h1{font-size:21px;text-align:center;background:var(--rgb);background-size:300% 1
 .app span{font-size:13px;font-weight:700;color:#fff;text-align:center;text-shadow:0 0 8px rgba(255,255,255,.4)}
 .app .bd{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;border-radius:11px;background:#ff1744;color:#fff;font-size:12px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 5px;border:2px solid #1a0510;z-index:2}
 .scr{width:100%;max-width:520px;display:none;flex-direction:column;align-items:center;gap:14px}
-.bar{width:100%;max-width:520px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5;padding:8px 0;background:linear-gradient(#1a0510 70%,transparent)}
+.bar{width:100%;max-width:520px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5;padding:8px 0;background:#1a0510;border-bottom:2px solid rgba(255,0,212,.35)}
 .bar .bk{width:46px;height:46px;border-radius:14px;border:0;font-size:22px;font-weight:800;color:#fff;background:var(--rgb);background-size:300% 100%;animation:rgbpos 4s linear infinite;cursor:pointer}
 .bar .tt{font-size:19px;font-weight:800;color:#fff;text-shadow:0 0 10px #ff00d4,0 0 18px #00d4ff}
 .card,textarea,#rep,details#warn,details#set{border:2px solid transparent!important;background:linear-gradient(#1b0608,#1b0608) padding-box,var(--rgb) border-box!important;background-size:auto,300% 100%!important;animation:rgbpos2 7s linear infinite}
@@ -128,13 +128,13 @@ button.b{background:var(--rgb);background-size:300% 100%;animation:rgbpos 5s lin
 </details>
 </section>
 <script>
-const VER="2026-11-24-c";
+const VER="2026-11-24-d";
 const OWNER="mukeshkashyap656-crypto",REPO="katha-chitra-videos";
 const $=id=>document.getElementById(id);
 const st=t=>$("st").textContent=t;
 const gt=()=>{try{return localStorage.getItem("kc_tok")||""}catch(e){return ""}};
 if(!gt())$("set").open=true;
-$("save").onclick=()=>{try{localStorage.setItem("kc_tok",$("tok").value.trim());$("tok").value="";st("Token save ho gaya ✅");setTimeout(loadAll,200)}catch(e){st("Save nahi hua")}};
+$("save").onclick=()=>{try{localStorage.setItem("kc_tok",$("tok").value.trim());$("tok").value="";st("Token save ho gaya ✅");$("chkout").textContent="✅ Token save ho gaya. Ab jaanch kar raha hoon…";setTimeout(loadAll,200);setTimeout(()=>$("chk").click(),300)}catch(e){st("Save nahi hua")}};
 
 // ---- voice ----
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -191,11 +191,12 @@ function wait(n,url){
   chk();polling=setInterval(chk,5000);
 }
 try{const l=JSON.parse(localStorage.getItem("kc_last")||"null");if(l&&gt()){$("rep").style.display="block";$("rep").textContent="Pichla jawab dekh raha hoon…";wait(l[0],l[1])}}catch(e){}
-document.addEventListener("visibilitychange",()=>{if(!document.hidden){try{const l=JSON.parse(localStorage.getItem("kc_last")||"null");if(l&&gt())wait(l[0],l[1])}catch(e){}}});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&gt()&&Date.now()-lastLoad>45000)loadAll();if(!document.hidden){try{const l=JSON.parse(localStorage.getItem("kc_last")||"null");if(l&&gt())wait(l[0],l[1])}catch(e){}}});
 
+const fe=m=>/Bad credentials|401/i.test(m||"")?"Token galat ya khatam ho gaya. Setup mein naya token daalo.":(/rate limit/i.test(m||"")?"GitHub ne thodi der rok diya (bahut baar dekha). 2-3 minute baad dabao.":m);
 const esc=t=>t.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const clean=t=>t.replace(/<sub>[\s\S]*?<\/sub>/g,"").trim();
-const fd=d=>new Date(d).toLocaleString("hi-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+const fd=d=>new Date(d).toLocaleString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
 
 function fixBox(issue,bhag){
   const w=document.createElement("div");w.className="ctl";
@@ -282,7 +283,7 @@ async function delBranch(name){
   throw new Error("branch "+name+" nahi mitti ("+r.status+(r.status===403||r.status===401?", token ko Contents: Read and write chahiye":"")+")");
 }
 async function loadWork(){
-  const L=$("l2");if(!gt()){L.textContent="Pehle token daalo";return}
+  const L=$("l2");if(!gt()){L.innerHTML="Pehle token daalo. <a href=\"#s6\">⚙️ Setup kholo</a>";return}
   L.textContent="Dekh raha hoon…";
   try{
     const r=await api("/issues?state=all&per_page=15&sort=updated");const j=await r.json();
@@ -307,7 +308,7 @@ async function loadWork(){
       L.appendChild(c);
     }
     if(!L.children.length)L.textContent="Abhi kuch nahi";
-  }catch(e){L.textContent="Nahi aaya: "+e.message}
+  }catch(e){L.textContent="Nahi aaya: "+fe(e.message)}
 }
 async function fileBlob(branch,name){
   const r=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/contents/"+name.split("/").map(encodeURIComponent).join("/")+"?ref="+encodeURIComponent(branch),{cache:"no-store",headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github.raw"}});
@@ -315,7 +316,7 @@ async function fileBlob(branch,name){
   return URL.createObjectURL(await r.blob());
 }
 async function loadVideos(){
-  const L=$("l3");if(!gt()){L.textContent="Pehle token daalo";return}
+  const L=$("l3");if(!gt()){L.innerHTML="Pehle token daalo. <a href=\"#s6\">⚙️ Setup kholo</a>";return}
   L.textContent="Video dhoondh raha hoon…";
   try{
     const r=await api("/issues/comments?per_page=100&sort=created&direction=desc");const j=await r.json();
@@ -372,7 +373,7 @@ async function loadVideos(){
       c.appendChild(fixBox(v.n));
       L.appendChild(c);
     }
-  }catch(e){L.textContent="Nahi aaya: "+e.message}
+  }catch(e){L.textContent="Nahi aaya: "+fe(e.message)}
 }
 $("chk").onclick=async()=>{
   const o=$("chkout");if(!gt()){o.textContent="Pehle token daalo aur Save karo";return}
@@ -405,7 +406,7 @@ async function saveEps(k,fn){
   if(!pr.ok){const j=await pr.json().catch(()=>({}));throw new Error(pr.status===403||pr.status===404?"token ko Contents: Read and write chahiye":(j.message||"error "+pr.status))}
 }
 async function loadYT(){
-  const L=$("l4");if(!gt()){L.textContent="Pehle token daalo";return}
+  const L=$("l4");if(!gt()){L.innerHTML="Pehle token daalo. <a href=\"#s6\">⚙️ Setup kholo</a>";return}
   L.textContent="Dekh raha hoon…";
   try{
     L.innerHTML="";
@@ -488,10 +489,11 @@ async function loadYT(){
       for(const r of rj.workflow_runs){if(want.includes(r.name)&&!seen[r.name]){seen[r.name]=1;o.push((r.status!=="completed"?"🔄":r.conclusion==="success"?"✅":r.conclusion==="skipped"?"⏭️":"❌")+" "+r.name+" · "+fd(r.created_at))}}
       $("runs").innerText=o.length?"Aakhri baar:\n"+o.join("\n"):"Abhi koi run nahi mila";
     }catch(e){$("runs").textContent="Chalne ka haal: token ko Actions: Read-only ki ijazat chahiye"}
-  }catch(e){L.textContent="Nahi aaya: "+e.message}
+  }catch(e){L.textContent="Nahi aaya: "+fe(e.message)}
 }
 $("r4").onclick=loadYT;
-function loadAll(){if(!gt())return;loadWork();loadVideos();loadYT()}
+let lastLoad=0;
+function loadAll(){if(!gt())return;lastLoad=Date.now();loadWork();loadVideos();loadYT()}
 loadAll();
 
 
