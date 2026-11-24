@@ -78,6 +78,9 @@ button.b{background:var(--rgb);background-size:300% 100%;animation:rgbpos 5s lin
 .card .issdel{position:absolute;top:8px;right:8px;width:46px;height:46px;margin:0!important;padding:0;border:0;border-radius:23px;font-size:24px;background:linear-gradient(135deg,#b00020,#ff1744)!important;color:#fff;box-shadow:0 0 14px rgba(255,23,68,.8)}
 .card .issdel.armed{width:auto;padding:0 14px;font-size:14px;font-weight:800}
 .card h3.hp{padding-right:56px}
+#toast{position:fixed;top:14px;left:12px;right:12px;z-index:20;padding:14px;border-radius:14px;text-align:center;font-weight:800;font-size:16px;color:#fff;background:linear-gradient(135deg,#11998e,#38ef7d);box-shadow:0 0 24px rgba(56,239,125,.7);display:none}
+#toast.bad{background:linear-gradient(135deg,#b00020,#ff1744);box-shadow:0 0 24px rgba(255,23,68,.7)}
+.auto{width:100%;max-width:520px;display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:#fff}.auto input{width:24px;height:24px}
 #upd{position:fixed;left:12px;right:12px;bottom:12px;z-index:9;padding:14px;border-radius:14px;text-align:center;font-weight:800;color:#1a0510;background:var(--rgb);background-size:300% 100%;animation:rgbpos 3s linear infinite;display:none}
 #ver{width:100%;text-align:center;font-size:11px;opacity:.5;margin-top:10px}
 #hmic{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;gap:14px;padding:14px;border-radius:22px;border:4px solid transparent;color:#fff;font-size:19px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#7a1a20,#3a0a2e) padding-box,var(--rgb) border-box;background-size:auto,300% 100%;animation:rgbpos2 3s linear infinite;box-shadow:0 0 26px rgba(255,0,212,.5),0 0 44px rgba(0,212,255,.3)}
@@ -88,6 +91,7 @@ body{padding-bottom:110px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style></head><body>
 <h1 id="h1">Katha Chitra</h1>
+<div id="toast"></div>
 <div id="upd">🔄 Naya page aaya hai. Yahan dabao</div>
 <button id="hmic"><i>🎤</i><span>Dabao aur bolo</span></button>
 <button id="fab" aria-label="Mic">🎤</button>
@@ -98,7 +102,8 @@ body{padding-bottom:110px}
 <button id="mic" aria-label="mic">🎤</button>
 <div id="st">Mic dabao aur bolo</div>
 <textarea id="txt" placeholder="Jo bologe yahan likha aayega. Galti ho to yahin theek kar lo."></textarea>
-<button class="b" id="send">Bhejo (AI ko kaam do)</button>
+<label class="auto"><input type="checkbox" id="autosend"> ⚡ Bolna band karte hi apne aap bhej do</label>
+<button class="b" id="send">📤 Bhejo (AI ko kaam do)</button>
 <div id="rep"></div>
 </div>
 
@@ -135,26 +140,30 @@ body{padding-bottom:110px}
 </details>
 </section>
 <script>
-const VER="2026-11-24-g";
+const VER="2026-11-24-h";
 const OWNER="mukeshkashyap656-crypto",REPO="katha-chitra-videos";
 const $=id=>document.getElementById(id);
 const st=t=>$("st").textContent=t;
+let toastT=null;const toast=(t,bad)=>{const e=$("toast");e.textContent=t;e.className=bad?"bad":"";e.style.display="block";clearTimeout(toastT);toastT=setTimeout(()=>e.style.display="none",4000)};
 const gt=()=>{try{return localStorage.getItem("kc_tok")||""}catch(e){return ""}};
 if(!gt())$("set").open=true;
 $("save").onclick=()=>{try{localStorage.setItem("kc_tok",$("tok").value.trim());$("tok").value="";st("Token save ho gaya ✅");$("chkout").textContent="✅ Token save ho gaya. Ab jaanch kar raha hoon…";setTimeout(loadAll,200);setTimeout(()=>$("chk").click(),300)}catch(e){st("Save nahi hua")}};
 
 // ---- voice ----
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-let rec=null,on=false,base="";
+let rec=null,on=false,base="",userStop=false;
+try{$("autosend").checked=localStorage.getItem("kc_auto")==="1"}catch(e){}
+$("autosend").onchange=()=>{try{localStorage.setItem("kc_auto",$("autosend").checked?"1":"0")}catch(e){}};
+function killMic(){if(on&&rec){rec.onresult=null;rec.onend=null;rec.onerror=null;try{rec.stop()}catch(e){}}on=false;$("mic").classList.remove("on")}
 if(!SR){st("Is browser mein mic nahi chalta. Chrome use karo, ya keyboard ka mic dabao.")}
 $("mic").onclick=()=>{
   if(!SR){$("txt").focus();return}
-  if(on){rec.stop();return}
-  rec=new SR();rec.lang="hi-IN";rec.interimResults=true;rec.continuous=true;
+  if(on){userStop=true;rec.stop();return}
+  userStop=false;rec=new SR();rec.lang="hi-IN";rec.interimResults=true;rec.continuous=true;
   base=$("txt").value?($("txt").value.trim()+" "):"";
   rec.onresult=e=>{let s="";for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;$("txt").value=base+s};
   rec.onstart=()=>{on=true;$("mic").classList.add("on");st("Sun raha hoon… bolo. Rokne ko phir dabao")};
-  rec.onend=()=>{on=false;$("mic").classList.remove("on");st("Ruk gaya. Theek ho to Bhejo dabao")};
+  rec.onend=()=>{on=false;$("mic").classList.remove("on");st("Ruk gaya. Theek ho to Bhejo dabao");if(userStop&&$("autosend").checked&&$("txt").value.trim()){userStop=false;$("send").click()}};
   rec.onerror=e=>{const m={"not-allowed":"Mic ki ijazat do (Chrome ke upar 🔒 → Permissions → Microphone → Allow)","service-not-allowed":"Is browser mein mic ki ijazat nahi. Chrome mein kholo.","no-speech":"Kuch sunai nahi diya. Phir dabao aur thoda paas se bolo.","audio-capture":"Phone ka mic nahi mil raha. Dusra app mic use kar raha ho to band karo.","network":"Mic ko internet chahiye (Chrome awaaz Google ko bhejta hai). Internet check karo."};st(m[e.error]||("Mic error: "+e.error+". Chaho to keyboard ka mic dabake text box mein bolo."))};
   rec.start();
 };
@@ -166,6 +175,7 @@ $("send").onclick=async()=>{
   let t=$("txt").value.trim();
   if(!t){st("Pehle kuch bolo ya likho");return}
   if(!gt()){$("set").open=true;st("Pehle token daalo");return}
+  killMic();
   if(!/@ai/i.test(t))t="@ai "+t;
   $("send").disabled=true;st("Bhej raha hoon…");
   try{
@@ -173,12 +183,12 @@ $("send").onclick=async()=>{
     const j=await r.json();
     if(!r.ok){const er=new Error(j.message||r.status);er.status=r.status;throw er}
     $("txt").value="";
-    st("Bhej diya ✅ AI kaam kar raha hai (issue #"+j.number+")");
+    st("Bhej diya ✅ AI kaam kar raha hai (issue #"+j.number+")");toast("✅ Bhej diya! AI kaam kar raha hai");
     $("rep").style.display="block";$("rep").innerHTML='Jawab aate hi yahin dikhega…<br><a href="'+j.html_url+'" target="_blank">GitHub par dekho</a>';
     try{localStorage.setItem("kc_last",JSON.stringify([j.number,j.html_url]))}catch(e){}
     wait(j.number,j.html_url);setTimeout(loadWork,3000);
   }catch(e){
-    st("❌ Nahi gaya");
+    st("❌ Nahi gaya");toast("❌ Nahi gaya. Neeche dekho kyun",true);
     const R=$("rep");R.style.display="block";R.innerHTML="";
     const d=document.createElement("div");d.style.color="#ffb4a8";
     const why=e.status===401?"Token galat ya khatam ho gaya. ⚙️ Setup mein naya token daalo.":((e.status===403||e.status===404)?"Token mein Issues ki ijazat nahi hai. GitHub → Settings → Developer settings → apna token → Repository permissions → Issues → Read and write. Phir naya token Setup mein daalo.":(e.message&&/fetch|network/i.test(e.message)?"Internet nahi chal raha ya GitHub tak nahi pahunch pa raha.":"GitHub ne mana kiya: "+fe(e.message)));
@@ -248,6 +258,7 @@ function fixBox(issue,bhag){
   w.querySelector(".fs").onclick=async ev=>{const fsb=ev.currentTarget;
     const t=ta.value.trim();if(!t){m.textContent="Pehle bolo ya likho";return}
     if(!gt()){m.textContent="Pehle token daalo";return}
+    if(on&&rec){rec.onresult=null;rec.onend=null;try{rec.stop()}catch(x){}on=false;fm.innerHTML="<i>🎤</i><span>Bolo</span>";fm.classList.remove("rec")}
     fsb.disabled=true;m.textContent="Bhej raha hoon…";
     try{
       let r;const body="@ai "+(bhag?"Bhag "+bhag+" mein sudhar: ":"Sudhar: ")+t;
