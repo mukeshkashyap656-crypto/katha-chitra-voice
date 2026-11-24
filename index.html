@@ -35,6 +35,7 @@ small{opacity:.75}
 .card video,.card img{width:100%;border-radius:10px;background:#000;margin-top:8px}
 .card button{margin-top:8px;padding:10px 14px;border-radius:10px;border:0;background:#f2c14e;color:#3a0a0e;font-weight:700;font-size:15px}
 .card button+button{margin-left:8px;background:#7a1a20;color:#f2c14e}
+.row.w{flex-wrap:wrap}.row.w button{flex:1 1 45%}.card .dng{background:#8b0000;color:#fff}.card .m.ok{color:#cfa;opacity:1}
 </style></head><body>
 <h1>🎙️ Katha Chitra · Bol kar kaam karao</h1>
 <div class="pane" id="p1">
@@ -184,6 +185,22 @@ function fixBox(issue,bhag){
   };
   return w;
 }
+const getHid=()=>{try{return JSON.parse(localStorage.getItem("kc_hide")||"[]")}catch(e){return []}};
+function twice(btn,fn){let armed=false,t=null;const o=btn.textContent;btn.onclick=async()=>{if(!armed){armed=true;btn.textContent="⚠️ Pakka? Phir dabao";t=setTimeout(()=>{armed=false;btn.textContent=o},6000);return}clearTimeout(t);armed=false;btn.disabled=true;btn.textContent="Ho raha hai…";try{await fn()}catch(e){}btn.disabled=false;btn.textContent=o}}
+function saveAs(url,name){const x=document.createElement("a");x.href=url;x.download=name;document.body.appendChild(x);x.click();x.remove()}
+async function delIssue(i,c){
+  let why="";
+  try{
+    const r=await fetch("https://api.github.com/graphql",{method:"POST",headers:{"Authorization":"Bearer "+gt(),"Content-Type":"application/json"},body:JSON.stringify({query:"mutation($id:ID!){deleteIssue(input:{issueId:$id}){clientMutationId}}",variables:{id:i.node_id}})});
+    const j=await r.json();
+    if(r.ok&&!j.errors){c.innerHTML="<div class='m ok'>🗑 Issue #"+i.number+" poora mita diya</div>";setTimeout(()=>c.remove(),2500);return}
+    why=(j.errors&&j.errors[0]&&j.errors[0].message)||("error "+r.status);
+  }catch(e){why=e.message}
+  try{await api("/issues/"+i.number,{method:"PATCH",body:JSON.stringify({state:"closed",state_reason:"not_planned"})})}catch(e){}
+  const h=getHid();h.push(i.number);try{localStorage.setItem("kc_hide",JSON.stringify(h))}catch(e){}
+  c.innerHTML="<div class='m ok'>🗑 Issue #"+i.number+" hata diya. GitHub ne poora mitane ki ijazat nahi di ("+esc(why)+"), isliye band karke yahan se chhupa diya.</div>";
+  setTimeout(()=>c.remove(),5000);
+}
 async function loadWork(){
   const L=$("l2");if(!gt()){L.textContent="Pehle token daalo";return}
   L.textContent="Dekh raha hoon…";
@@ -191,11 +208,13 @@ async function loadWork(){
     const r=await api("/issues?state=all&per_page=15&sort=updated");const j=await r.json();
     if(!r.ok)throw new Error(j.message);
     L.innerHTML="";
+    const hid=getHid();
     for(const i of j){
-      if(i.pull_request)continue;
+      if(i.pull_request||hid.includes(i.number))continue;
       const c=document.createElement("div");c.className="card";
       c.innerHTML="<h3>#"+i.number+" · "+esc(i.title)+"</h3><div class=m>"+fd(i.updated_at)+" · "+(i.state==="open"?"chal raha":"poora")+" · "+i.comments+" jawab</div><button>Jawab dekho</button>";
       c.appendChild(fixBox(i.number));
+      const dr=document.createElement('div');dr.className='row';dr.innerHTML="<button class=dng>🗑 Ye issue delete karo</button>";c.appendChild(dr);twice(dr.querySelector('.dng'),()=>delIssue(i,c));
       c.querySelector("button").onclick=async e=>{
         e.target.disabled=true;e.target.textContent="…";
         const cr=await api("/issues/"+i.number+"/comments?per_page=30");const cs=await cr.json();
@@ -232,18 +251,30 @@ async function loadVideos(){
     if(!vids.length){L.textContent="Abhi koi video nahi bana";return}
     for(const v of vids.slice(0,15)){
       const c=document.createElement("div");c.className="card";
-      c.innerHTML="<h3>🎬 "+esc(v.f.replace(/\.mp4$/,"").replace(/_/g," "))+"</h3><div class=m>Issue #"+v.n+" · "+fd(v.at)+"</div><button class=pl>▶ Chalao</button>";
+      c.innerHTML="<h3>🎬 "+esc(v.f.replace(/\.mp4$/,"").replace(/_/g," "))+"</h3><div class=m>Issue #"+v.n+" · "+fd(v.at)+"</div><div class='row w'><button class=pl>▶ Chalao</button><button class=dv>⤓ Video download</button>"+(v.cover?"<button class=cv>🖼 Cover dekho</button><button class=dc>⤓ Cover download</button>":"")+"<button class='dng dl'>🗑 Video delete</button></div><div class='m msg'></div><div class=slot></div>";
+      const msg=t=>{c.querySelector(".msg").textContent=t},slot=c.querySelector(".slot");
+      let vu=null,cu=null;
+      const gv=async()=>vu||(vu=await fileBlob(v.b,v.f));
+      const gc=async()=>cu||(cu=await fileBlob(v.b,v.cover));
+      const busy=async(b,txt,fn)=>{const o=b.textContent;b.disabled=true;b.textContent=txt;msg("");try{await fn()}catch(err){msg("❌ "+err.message)}b.disabled=false;b.textContent=o};
+      c.querySelector(".pl").onclick=e=>busy(e.target,"Aa raha hai…",async()=>{
+        const u=await gv();let vd=slot.querySelector("video");
+        if(!vd){vd=document.createElement("video");vd.controls=true;vd.playsInline=true;vd.src=u;slot.prepend(vd)}
+        vd.scrollIntoView({behavior:"smooth",block:"center"});try{await vd.play()}catch(x){}
+      });
+      c.querySelector(".dv").onclick=e=>busy(e.target,"Aa raha hai…",async()=>{const u=await gv();saveAs(u,v.f);msg("✅ Video download shuru")});
+      if(v.cover){
+        c.querySelector(".cv").onclick=e=>busy(e.target,"Aa raha hai…",async()=>{
+          const u=await gc();if(!slot.querySelector("img")){const im=document.createElement("img");im.src=u;slot.appendChild(im)}
+        });
+        c.querySelector(".dc").onclick=e=>busy(e.target,"Aa raha hai…",async()=>{const u=await gc();saveAs(u,v.cover);msg("✅ Cover download shuru")});
+      }
+      twice(c.querySelector(".dl"),async()=>{
+        const r=await fetch("https://api.github.com/repos/"+OWNER+"/"+REPO+"/git/refs/heads/"+v.b.split("/").map(encodeURIComponent).join("/"),{method:"DELETE",headers:{"Authorization":"Bearer "+gt(),"Accept":"application/vnd.github+json"}});
+        if(r.ok||r.status===422){c.innerHTML="<div class='m ok'>🗑 "+esc(v.f)+" mita diya</div>";setTimeout(()=>c.remove(),2500)}
+        else msg("❌ Nahi mita ("+r.status+"). Token ko Contents: Read and write chahiye");
+      });
       c.appendChild(fixBox(v.n));
-      c.querySelector(".pl").onclick=async e=>{
-        const b=e.target;b.disabled=true;b.textContent="Aa raha hai…";
-        try{
-          const u=await fileBlob(v.b,v.f);
-          const vd=document.createElement("video");vd.src=u;vd.controls=true;vd.playsInline=true;
-          const a=document.createElement("button");a.textContent="⤓ Download";a.onclick=()=>{const x=document.createElement("a");x.href=u;x.download=v.f;x.click()};
-          b.replaceWith(vd);vd.after(a);
-          if(v.cover){try{const cu=await fileBlob(v.b,v.cover);const im=document.createElement("img");im.src=cu;a.after(im)}catch(e){}}
-        }catch(err){b.disabled=false;b.textContent="▶ Phir koshish";const w=document.createElement("div");w.className="m";w.textContent=err.message;b.after(w)}
-      };
       L.appendChild(c);
     }
   }catch(e){L.textContent="Nahi aaya: "+e.message}
@@ -287,7 +318,7 @@ async function loadYT(){
       const stt=posted?"✅ YouTube par ho gaya":(e.status==="ready"?"⏳ Taiyar · "+(e.date||"")+" shaam 7 baje jaayega":(e.auto?"🛠️ Ban raha hai":"📁 Purana (haath se)"));
       let h="<h3>Bhag "+k+" · "+esc((e.title||e.file||"").replace(/ #shorts$/,"").slice(0,70))+"</h3><div class=m>"+stt+(e.instagram_id?" · Instagram ✅":"")+"</div>";
       if(e.youtube_id)h+='<a href="https://www.youtube.com/shorts/'+e.youtube_id+'" target="_blank">▶ YouTube par dekho</a><br>';
-      h+="<button class=pl>▶ Video chalao</button><button class=cp>Caption</button>";
+      h+="<button class=pl>▶ Video chalao</button><button class=dv>⤓ Video download</button><button class=cp>Caption</button><div class='m ym'></div>";
       const canEdit=!posted&&e.auto!==undefined;
       if(canEdit){h+="<div class=ctl><div class=m>"+(e.auto===false?"⏸ ROKA HUA — post nahi hoga":"Post ki tarikh")+"</div><input type=date class=dt value='"+(e.date||"")+"'><div class=row><button class=sd>📅 Tarikh badlo</button><button class=ps>"+(e.auto===false?"▶ Chalu karo":"⏸ Rok do")+"</button></div><div class=row><button class=pn>🚀 Abhi post karo</button><button class=rb>🔁 Dobara banao</button></div><div class=m id=msg"+k+"></div></div>"}
       c.innerHTML=h;
@@ -296,6 +327,7 @@ async function loadYT(){
         try{const u=await fileBlob("main",e.file);const vd=document.createElement("video");vd.src=u;vd.controls=true;vd.playsInline=true;b.replaceWith(vd)}
         catch(err){b.disabled=false;b.textContent="▶ Phir koshish";const w=document.createElement("div");w.className="m";w.textContent=err.message;b.after(w)}
       };
+      c.querySelector(".dv").onclick=async ev=>{const b=ev.target,ym=c.querySelector(".ym");b.disabled=true;const o=b.textContent;b.textContent="Aa raha hai…";ym.textContent="";try{const u=await fileBlob("main",e.file);saveAs(u,(e.file||"video.mp4").split("/").pop());ym.textContent="✅ Download shuru"}catch(err){ym.textContent="❌ "+err.message}b.disabled=false;b.textContent=o};
       if(canEdit){
         const msg=t=>{const m=c.querySelector("#msg"+k);if(m)m.textContent=t};
         const edit=async(fn,done)=>{try{msg("Ho raha hai…");await saveEps(k,fn);msg(done);setTimeout(loadYT,1200)}catch(er){msg("❌ "+er.message)}};
