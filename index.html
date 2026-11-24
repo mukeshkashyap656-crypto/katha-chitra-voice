@@ -64,10 +64,28 @@ button.b,.wb,.card button,.ctl .jc,.row button{position:relative}
 button.b{background:var(--rgb);background-size:300% 100%;animation:rgbpos 5s linear infinite;color:#1a0510;text-shadow:0 0 6px rgba(255,255,255,.6)}
 .card button{box-shadow:0 0 10px rgba(255,255,255,.18)}
 .card .dng,.dng{background:linear-gradient(90deg,#8b0000,#ff1744)!important;color:#fff!important}
+.ibar{display:flex;flex-wrap:wrap;gap:8px;width:100%;margin-top:10px}
+.card .ib{flex:1 1 56px;min-width:56px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 7px;margin:0!important;border:0;border-radius:16px;color:#fff;font-size:11px;font-weight:800;box-shadow:0 0 12px rgba(255,255,255,.25),inset 0 2px 6px rgba(255,255,255,.35);background:linear-gradient(135deg,#444,#222)!important}
+.card .ib i{font-style:normal;font-size:27px;line-height:1}
+.card .ib.c-pl{background:linear-gradient(135deg,#11998e,#38ef7d)!important}
+.card .ib.c-dv{background:linear-gradient(135deg,#2193b0,#6dd5ed)!important}
+.card .ib.c-sh{background:linear-gradient(135deg,#8e2de2,#c471ed)!important}
+.card .ib.c-cv{background:linear-gradient(135deg,#f7971e,#ffd200)!important;color:#3a2a00}
+.card .ib.c-cc{background:linear-gradient(135deg,#ee0979,#ff6a00)!important}
+.card .ib.c-dl{background:linear-gradient(135deg,#b00020,#ff1744)!important}
+.card .ib:disabled{opacity:.6}
+.card{position:relative}
+.card .issdel{position:absolute;top:8px;right:8px;width:46px;height:46px;margin:0!important;padding:0;border:0;border-radius:23px;font-size:24px;background:linear-gradient(135deg,#b00020,#ff1744)!important;color:#fff;box-shadow:0 0 14px rgba(255,23,68,.8)}
+.card .issdel.armed{width:auto;padding:0 14px;font-size:14px;font-weight:800}
+.card h3.hp{padding-right:56px}
+#upd{position:fixed;left:12px;right:12px;bottom:12px;z-index:9;padding:14px;border-radius:14px;text-align:center;font-weight:800;color:#1a0510;background:var(--rgb);background-size:300% 100%;animation:rgbpos 3s linear infinite;display:none}
+#ver{width:100%;text-align:center;font-size:11px;opacity:.5;margin-top:10px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style></head><body>
 <h1 id="h1">Katha Chitra</h1>
+<div id="upd">🔄 Naya page aaya hai. Yahan dabao</div>
 <div id="home"><div class="app" data-s="s1"><div class="ic"><i style="background:linear-gradient(135deg,#ff512f,#dd2476)">🎤</i></div><span>Bolo</span></div><div class="app" data-s="s2"><div class="ic"><i style="background:linear-gradient(135deg,#36d1dc,#5b86e5)">📜</i></div><span>AI ke kaam</span></div><div class="app" data-s="s3"><div class="ic"><i style="background:linear-gradient(135deg,#f7971e,#ffd200)">🎬</i></div><span>Video</span></div><div class="app" data-s="s4"><div class="ic"><i style="background:linear-gradient(135deg,#ff0844,#ff7a5c)">📺</i></div><span>YouTube</span></div><div class="app" data-s="s5"><div class="ic"><i style="background:linear-gradient(135deg,#f12711,#f5af19)">⚠️</i></div><span>Warning</span></div><div class="app" data-s="s6"><div class="ic"><i style="background:linear-gradient(135deg,#11998e,#38ef7d)">⚙️</i></div><span>Setup</span></div></div>
+<div id="ver"></div>
 <section class="scr" id="s1"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">🎤 Bolo</div></div>
 <div class="pane" id="p1">
 <button id="mic" aria-label="mic">🎤</button>
@@ -110,6 +128,7 @@ button.b{background:var(--rgb);background-size:300% 100%;animation:rgbpos 5s lin
 </details>
 </section>
 <script>
+const VER="2026-11-24-c";
 const OWNER="mukeshkashyap656-crypto",REPO="katha-chitra-videos";
 const $=id=>document.getElementById(id);
 const st=t=>$("st").textContent=t;
@@ -229,7 +248,9 @@ function fixBox(issue,bhag){
 const badge=(i,n)=>{const el=document.querySelector('.app[data-s=s'+i+'] .bd');if(!el)return;el.textContent=n;el.style.display=n>0?'flex':'none'};
 async function copyText(t){try{await navigator.clipboard.writeText(t);return true}catch(e){try{const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();const ok=document.execCommand('copy');x.remove();return ok}catch(e2){return false}}}
 const getHid=()=>{try{return JSON.parse(localStorage.getItem("kc_hide")||"[]")}catch(e){return []}};
-function twice(btn,fn){let armed=false,t=null;const o=btn.textContent;btn.onclick=async()=>{if(!armed){armed=true;btn.textContent="⚠️ Pakka? Phir dabao";t=setTimeout(()=>{armed=false;btn.textContent=o},6000);return}clearTimeout(t);armed=false;btn.disabled=true;btn.textContent="Ho raha hai…";try{await fn()}catch(e){}btn.disabled=false;btn.textContent=o}}
+const ib=(c,ic,t)=>"<button class='ib "+c+"'><i>"+ic+"</i><span>"+t+"</span></button>";
+async function busyB(b,fn){const o=b.innerHTML;b.disabled=true;b.innerHTML="<i>⏳</i><span>Aa raha hai</span>";try{await fn()}finally{b.disabled=false;b.innerHTML=o}}
+function twice(btn,fn){let armed=false,t=null;const o=btn.innerHTML;const isI=btn.classList.contains("ib"),isD=btn.classList.contains("issdel");btn.onclick=async()=>{if(!armed){armed=true;btn.classList.add("armed");btn.innerHTML=isI?"<i>⚠️</i><span>Pakka?</span>":(isD?"⚠️ Pakka?":"⚠️ Pakka? Phir dabao");t=setTimeout(()=>{armed=false;btn.classList.remove("armed");btn.innerHTML=o},6000);return}clearTimeout(t);armed=false;btn.classList.remove("armed");btn.disabled=true;btn.innerHTML=isI?"<i>⏳</i><span>Ho raha hai</span>":"Ho raha hai…";try{await fn()}catch(e){}btn.disabled=false;btn.innerHTML=o}}
 function saveAs(url,name){const x=document.createElement("a");x.href=url;x.download=name;document.body.appendChild(x);x.click();x.remove()}
 async function delIssue(i,c){
   let why="";
@@ -273,10 +294,10 @@ async function loadWork(){
     for(const i of j){
       if(i.pull_request||hid.includes(i.number))continue;
       const c=document.createElement("div");c.className="card";
-      c.innerHTML="<h3>#"+i.number+" · "+esc(i.title)+"</h3><div class=m>"+fd(i.updated_at)+" · "+(i.state==="open"?"chal raha":"poora")+" · "+i.comments+" jawab</div><button>Jawab dekho</button>";
+      c.innerHTML="<button class=issdel title='Delete'>🗑</button><h3 class=hp>#"+i.number+" · "+esc(i.title)+"</h3><div class=m>"+fd(i.updated_at)+" · "+(i.state==="open"?"chal raha":"poora")+" · "+i.comments+" jawab</div><button>Jawab dekho</button>";
       c.appendChild(fixBox(i.number));
-      const dr=document.createElement('div');dr.className='row';dr.innerHTML="<button class=dng>🗑 Ye issue delete karo</button>";c.appendChild(dr);twice(dr.querySelector('.dng'),()=>delIssue(i,c));
-      c.querySelector("button").onclick=async e=>{
+      twice(c.querySelector('.issdel'),()=>delIssue(i,c));
+      c.querySelector("button:not(.issdel)").onclick=async e=>{
         e.target.disabled=true;e.target.textContent="…";
         const cr=await api("/issues/"+i.number+"/comments?per_page=30");const cs=await cr.json();
         const d=document.createElement("div");d.className="t";
@@ -313,28 +334,28 @@ async function loadVideos(){
     if(!vids.length){L.textContent="Abhi koi video nahi bana";return}
     for(const v of vids.slice(0,15)){
       const c=document.createElement("div");c.className="card";
-      c.innerHTML="<h3>🎬 "+esc(v.f.replace(/\.mp4$/,"").replace(/_/g," "))+"</h3><div class=m>Issue #"+v.n+" · "+fd(v.at)+"</div><div class='row w'><button class=pl>▶ Chalao</button><button class=dv>⤓ Video download</button><button class=sh>📤 Share</button>"+(v.cover?"<button class=cv>🖼 Cover dekho</button><button class=dc>⤓ Cover download</button>":"")+"<button class='dng dl'>🗑 Video delete</button></div><div class='m msg'></div><div class=slot></div>";
+      c.innerHTML="<h3>🎬 "+esc(v.f.replace(/\.mp4$/,"").replace(/_/g," "))+"</h3><div class=m>Issue #"+v.n+" · "+fd(v.at)+"</div><div class=ibar>"+ib('pl c-pl','▶','Chalao')+ib('dv c-dv','⤓','Download')+ib('sh c-sh','📤','Share')+(v.cover?ib('cv c-cv','🖼','Cover')+ib('dc c-dv','⤓','Cover ⤓'):'')+ib('dl c-dl','🗑','Delete')+"</div><div class='m msg'></div><div class=slot></div>";
       const msg=t=>{c.querySelector(".msg").textContent=t},slot=c.querySelector(".slot");
       let vu=null,cu=null;
       const gv=async()=>vu||(vu=await fileBlob(v.b,v.f));
       const gc=async()=>cu||(cu=await fileBlob(v.b,v.cover));
-      const busy=async(b,txt,fn)=>{const o=b.textContent;b.disabled=true;b.textContent=txt;msg("");try{await fn()}catch(err){msg("❌ "+err.message)}b.disabled=false;b.textContent=o};
-      c.querySelector(".pl").onclick=e=>busy(e.target,"Aa raha hai…",async()=>{
+      const busy=async(b,txt,fn)=>{msg("");try{await busyB(b,fn)}catch(err){msg("❌ "+err.message)}};
+      c.querySelector(".pl").onclick=e=>busy(e.currentTarget,"",async()=>{
         const u=await gv();let vd=slot.querySelector("video");
         if(!vd){vd=document.createElement("video");vd.controls=true;vd.playsInline=true;vd.src=u;slot.prepend(vd)}
         vd.scrollIntoView({behavior:"smooth",block:"center"});try{await vd.play()}catch(x){}
       });
-      c.querySelector(".dv").onclick=e=>busy(e.target,"Aa raha hai…",async()=>{const u=await gv();saveAs(u,v.f);msg("✅ Video download shuru")});
-      c.querySelector(".sh").onclick=e=>busy(e.target,"Aa raha hai…",async()=>{
+      c.querySelector(".dv").onclick=e=>busy(e.currentTarget,"",async()=>{const u=await gv();saveAs(u,v.f);msg("✅ Video download shuru")});
+      c.querySelector(".sh").onclick=e=>busy(e.currentTarget,"",async()=>{
         const u=await gv();const f=new File([await (await fetch(u)).blob()],v.f,{type:"video/mp4"});
         if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:v.f})}catch(x){if(x.name!=="AbortError")throw x}}
         else{saveAs(u,v.f);msg("Is browser mein share nahi chalta, isliye download kar diya")}
       });
       if(v.cover){
-        c.querySelector(".cv").onclick=e=>busy(e.target,"Aa raha hai…",async()=>{
+        c.querySelector(".cv").onclick=e=>busy(e.currentTarget,"",async()=>{
           const u=await gc();if(!slot.querySelector("img")){const im=document.createElement("img");im.src=u;slot.appendChild(im)}
         });
-        c.querySelector(".dc").onclick=e=>busy(e.target,"Aa raha hai…",async()=>{const u=await gc();saveAs(u,v.cover);msg("✅ Cover download shuru")});
+        c.querySelector(".dc").onclick=e=>busy(e.currentTarget,"",async()=>{const u=await gc();saveAs(u,v.cover);msg("✅ Cover download shuru")});
       }
       twice(c.querySelector(".dl"),async()=>{
         try{
@@ -402,17 +423,18 @@ async function loadYT(){
       const stt=posted?"✅ YouTube par ho gaya":(e.status==="ready"?"⏳ Taiyar · "+(e.date||"")+" shaam 7 baje jaayega":(e.auto?"🛠️ Ban raha hai":"📁 Purana (haath se)"));
       let h="<h3>Bhag "+k+" · "+esc((e.title||e.file||"").replace(/ #shorts$/,"").slice(0,70))+"</h3><div class=m>"+stt+(e.instagram_id?" · Instagram ✅":"")+"</div>";
       if(e.youtube_id)h+='<a href="https://www.youtube.com/shorts/'+e.youtube_id+'" target="_blank">▶ YouTube par dekho</a><br>';
-      h+="<button class=pl>▶ Video chalao</button><button class=dv>⤓ Video download</button><button class=cp>Caption</button><button class=cc>📋 Copy</button><div class='m ym'></div>";
+      h+="<div class=ibar>"+ib('pl c-pl','▶','Chalao')+ib('dv c-dv','⤓','Download')+ib('cc c-cc','📋','Copy')+ib('cp c-sh','📝','Caption')+ib('xd c-dl','🗑','Delete')+"</div><div class='m ym'></div>";
       const canEdit=!posted&&e.auto!==undefined;
       if(canEdit){h+="<div class=ctl><div class=m>"+(e.auto===false?"⏸ ROKA HUA — post nahi hoga":"Post ki tarikh")+"</div><input type=date class=dt value='"+(e.date||"")+"'><div class=row><button class=sd>📅 Tarikh badlo</button><button class=ps>"+(e.auto===false?"▶ Chalu karo":"⏸ Rok do")+"</button></div><div class=row><button class=pn>🚀 Abhi post karo</button><button class=rb>🔁 Dobara banao</button></div><div class=m id=msg"+k+"></div></div>"}
-      h+="<div class=row><button class='dng xd'>🗑 GitHub se video delete</button></div><div class='m xm'>"+(posted?"YouTube/Instagram par jo ja chuka wo nahi mitega, sirf GitHub ki file mitegi.":"Delete karne par ye bhaag post hone se hat jaayega (auto-post isse nahi uthayega).")+"</div>";
+      h+="<div class='m xm'>"+(posted?"YouTube/Instagram par jo ja chuka wo nahi mitega, sirf GitHub ki file mitegi.":"Delete karne par ye bhaag post hone se hat jaayega (auto-post isse nahi uthayega).")+"</div>";
       c.innerHTML=h;
-      c.querySelector(".pl").onclick=async ev=>{
-        const b=ev.target;b.disabled=true;b.textContent="Aa raha hai…";
-        try{const u=await fileBlob("main",e.file);const vd=document.createElement("video");vd.src=u;vd.controls=true;vd.playsInline=true;b.replaceWith(vd)}
-        catch(err){b.disabled=false;b.textContent="▶ Phir koshish";const w=document.createElement("div");w.className="m";w.textContent=err.message;b.after(w)}
+      const ym0=c.querySelector(".ym");
+      c.querySelector(".pl").onclick=async ev=>{const b=ev.currentTarget;ym0.textContent="";
+        try{await busyB(b,async()=>{const u=await fileBlob("main",e.file);let vd=c.querySelector("video");if(!vd){vd=document.createElement("video");vd.src=u;vd.controls=true;vd.playsInline=true;c.querySelector(".ibar").after(vd)}vd.scrollIntoView({behavior:"smooth",block:"center"});try{await vd.play()}catch(x){}})}catch(err){ym0.textContent="❌ "+err.message}
       };
-      c.querySelector(".dv").onclick=async ev=>{const b=ev.target,ym=c.querySelector(".ym");b.disabled=true;const o=b.textContent;b.textContent="Aa raha hai…";ym.textContent="";try{const u=await fileBlob("main",e.file);saveAs(u,(e.file||"video.mp4").split("/").pop());ym.textContent="✅ Download shuru"}catch(err){ym.textContent="❌ "+err.message}b.disabled=false;b.textContent=o};
+      c.querySelector(".dv").onclick=async ev=>{const b=ev.currentTarget;ym0.textContent="";
+        try{await busyB(b,async()=>{const u=await fileBlob("main",e.file);saveAs(u,(e.file||"video.mp4").split("/").pop());ym0.textContent="✅ Download shuru"})}catch(err){ym0.textContent="❌ "+err.message}
+      };
       if(canEdit){
         const msg=t=>{const m=c.querySelector("#msg"+k);if(m)m.textContent=t};
         const edit=async(fn,done)=>{try{msg("Ho raha hai…");await saveEps(k,fn);msg(done);setTimeout(loadYT,1200)}catch(er){msg("❌ "+er.message)}};
@@ -452,7 +474,7 @@ async function loadYT(){
       });
       c.appendChild(fixBox(null,k));
       c.querySelector(".cc").onclick=async ev=>{const ym=c.querySelector(".ym");const t=(e.title?e.title+"\n\n":"")+(e.caption||"")+"\n\n"+(Array.isArray(e.tags)?e.tags.join(" "):(e.tags||""));ym.textContent=(await copyText(t))?"✅ Caption, title aur tags copy ho gaye":"❌ Copy nahi hua, Caption dabake haath se copy karo"};
-      c.querySelector(".cp").onclick=ev=>{const d=document.createElement("div");d.className="t m";d.style.opacity=1;d.textContent=(e.caption||"")+"\n\nTags: "+(e.tags||[]).join(", ");ev.target.replaceWith(d)};
+      c.querySelector(".cp").onclick=()=>{const o=c.querySelector(".cap");if(o){o.remove();return}const d=document.createElement("div");d.className="t m cap";d.style.opacity=1;d.textContent=(e.caption||"")+"\n\nTags: "+(Array.isArray(e.tags)?e.tags.join(", "):(e.tags||""));c.querySelector(".ym").after(d)};
       L.appendChild(c);
     }
     badge(4,ks.filter(k=>eps[k].status==="ready"&&eps[k].auto!==false).length);
@@ -525,12 +547,14 @@ armTap($("w3"),"",async()=>{
   wl("Branches: "+bo+" mit gayi, "+bb+" nahi mitin");
   wl("\nPoora. Baaki kuch bacha ho to GitHub par dekho.");
 });
-function show(id){document.querySelectorAll(".scr").forEach(x=>x.style.display=x.id===id?"flex":"none");$("home").style.display=id?"none":"grid";$("h1").style.display=id?"none":"block";window.scrollTo(0,0)}
+function show(id){document.querySelectorAll(".scr").forEach(x=>x.style.display=x.id===id?"flex":"none");$("home").style.display=id?"none":"grid";$("h1").style.display=id?"none":"block";$("ver").style.display=id?"none":"block";window.scrollTo(0,0)}
 function route(){const h=location.hash.slice(1);show(/^s[1-6]$/.test(h)?h:"")}
 window.addEventListener("hashchange",route);
 document.querySelectorAll(".app").forEach(a=>a.onclick=()=>{location.hash=a.dataset.s});
 document.querySelectorAll(".bk").forEach(b=>b.onclick=()=>{location.hash=""});
 document.querySelectorAll(".app .ic").forEach(ic=>ic.insertAdjacentHTML("beforeend","<b class=bd></b>"));
+$("ver").textContent="Page version "+VER;
+fetch("index.html?t="+Date.now(),{cache:"no-store"}).then(r=>r.text()).then(t=>{if(!t.includes('VER="'+VER+'"')){$("upd").style.display="block";$("upd").onclick=()=>location.replace(location.pathname+"?v="+Date.now()+location.hash)}}).catch(()=>{});
 route();if(!gt()&&!location.hash)location.hash="s6";
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script></body></html>
