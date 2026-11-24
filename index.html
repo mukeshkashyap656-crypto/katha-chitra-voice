@@ -80,10 +80,15 @@ button.b{background:var(--rgb);background-size:300% 100%;animation:rgbpos 5s lin
 .card h3.hp{padding-right:56px}
 #upd{position:fixed;left:12px;right:12px;bottom:12px;z-index:9;padding:14px;border-radius:14px;text-align:center;font-weight:800;color:#1a0510;background:var(--rgb);background-size:300% 100%;animation:rgbpos 3s linear infinite;display:none}
 #ver{width:100%;text-align:center;font-size:11px;opacity:.5;margin-top:10px}
+#hmic{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;gap:14px;padding:14px;border-radius:22px;border:4px solid transparent;color:#fff;font-size:19px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#7a1a20,#3a0a2e) padding-box,var(--rgb) border-box;background-size:auto,300% 100%;animation:rgbpos2 3s linear infinite;box-shadow:0 0 26px rgba(255,0,212,.5),0 0 44px rgba(0,212,255,.3)}
+#hmic i{font-style:normal;font-size:44px}
+#fab{position:fixed;right:16px;bottom:18px;z-index:8;width:64px;height:64px;border-radius:32px;border:4px solid transparent;font-size:30px;display:none;align-items:center;justify-content:center;cursor:pointer;background:linear-gradient(#7a1a20,#7a1a20) padding-box,var(--rgb) border-box;background-size:auto,300% 100%;animation:rgbpos2 3s linear infinite;box-shadow:0 0 22px rgba(255,0,212,.7)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style></head><body>
 <h1 id="h1">Katha Chitra</h1>
 <div id="upd">🔄 Naya page aaya hai. Yahan dabao</div>
+<button id="hmic"><i>🎤</i><span>Dabao aur bolo</span></button>
+<button id="fab" aria-label="Mic">🎤</button>
 <div id="home"><div class="app" data-s="s1"><div class="ic"><i style="background:linear-gradient(135deg,#ff512f,#dd2476)">🎤</i></div><span>Bolo</span></div><div class="app" data-s="s2"><div class="ic"><i style="background:linear-gradient(135deg,#36d1dc,#5b86e5)">📜</i></div><span>AI ke kaam</span></div><div class="app" data-s="s3"><div class="ic"><i style="background:linear-gradient(135deg,#f7971e,#ffd200)">🎬</i></div><span>Video</span></div><div class="app" data-s="s4"><div class="ic"><i style="background:linear-gradient(135deg,#ff0844,#ff7a5c)">📺</i></div><span>YouTube</span></div><div class="app" data-s="s5"><div class="ic"><i style="background:linear-gradient(135deg,#f12711,#f5af19)">⚠️</i></div><span>Warning</span></div><div class="app" data-s="s6"><div class="ic"><i style="background:linear-gradient(135deg,#11998e,#38ef7d)">⚙️</i></div><span>Setup</span></div></div>
 <div id="ver"></div>
 <section class="scr" id="s1"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">🎤 Bolo</div></div>
@@ -128,7 +133,7 @@ button.b{background:var(--rgb);background-size:300% 100%;animation:rgbpos 5s lin
 </details>
 </section>
 <script>
-const VER="2026-11-24-d";
+const VER="2026-11-24-e";
 const OWNER="mukeshkashyap656-crypto",REPO="katha-chitra-videos";
 const $=id=>document.getElementById(id);
 const st=t=>$("st").textContent=t;
@@ -549,9 +554,11 @@ armTap($("w3"),"",async()=>{
   wl("Branches: "+bo+" mit gayi, "+bb+" nahi mitin");
   wl("\nPoora. Baaki kuch bacha ho to GitHub par dekho.");
 });
-function show(id){document.querySelectorAll(".scr").forEach(x=>x.style.display=x.id===id?"flex":"none");$("home").style.display=id?"none":"grid";$("h1").style.display=id?"none":"block";$("ver").style.display=id?"none":"block";window.scrollTo(0,0)}
+function show(id){document.querySelectorAll(".scr").forEach(x=>x.style.display=x.id===id?"flex":"none");$("home").style.display=id?"none":"grid";$("h1").style.display=id?"none":"block";$("ver").style.display=id?"none":"block";$("hmic").style.display=id?"none":"flex";$("fab").style.display=(id&&id!=="s1")?"flex":"none";window.scrollTo(0,0)}
 function route(){const h=location.hash.slice(1);show(/^s[1-6]$/.test(h)?h:"")}
 window.addEventListener("hashchange",route);
+function goMic(){location.hash="s1";setTimeout(()=>{if(!on)$("mic").click()},150)}
+$("hmic").onclick=goMic;$("fab").onclick=goMic;
 document.querySelectorAll(".app").forEach(a=>a.onclick=()=>{location.hash=a.dataset.s});
 document.querySelectorAll(".bk").forEach(b=>b.onclick=()=>{location.hash=""});
 document.querySelectorAll(".app .ic").forEach(ic=>ic.insertAdjacentHTML("beforeend","<b class=bd></b>"));
