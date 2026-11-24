@@ -158,7 +158,7 @@ const st=t=>$("st").textContent=t;
 let toastT=null;const toast=(t,bad)=>{const e=$("toast");e.textContent=t;e.className=bad?"bad":"";e.style.display="block";clearTimeout(toastT);toastT=setTimeout(()=>e.style.display="none",4000)};
 const gt=()=>{try{return localStorage.getItem("kc_tok")||""}catch(e){return ""}};
 if(!gt())$("set").open=true;
-$("save").onclick=()=>{try{localStorage.setItem("kc_tok",$("tok").value.trim());$("tok").value="";st("Token save ho gaya ✅");$("chkout").textContent="✅ Token save ho gaya. Ab jaanch kar raha hoon…";setTimeout(loadAll,200);setTimeout(()=>$("chk").click(),300)}catch(e){st("Save nahi hua")}};
+$("save").onclick=()=>{const tv=$("tok").value.trim();if(!tv){$("chkout").textContent=gt()?"ℹ️ Box khaali hai, isliye purana token waisa hi rakha. Naya daalna ho to pehle paste karo.":"❌ Pehle token paste karo, phir Save dabao.";return}try{try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(x){}localStorage.setItem("kc_tok",tv);$("tok").value="";st("Token save ho gaya ✅");$("chkout").textContent="✅ Token save ho gaya. Ab jaanch kar raha hoon…";setTimeout(loadAll,200);setTimeout(()=>$("chk").click(),300)}catch(e){st("Save nahi hua")}};
 
 // ---- voice ----
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
