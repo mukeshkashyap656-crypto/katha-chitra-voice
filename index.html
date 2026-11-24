@@ -151,14 +151,15 @@ body{padding-bottom:110px}
 </details>
 </section>
 <script>
-const VER="2026-11-24-i";
+const VER="2026-11-24-j";
 const OWNER="mukeshkashyap656-crypto",REPO="katha-chitra-videos";
 const $=id=>document.getElementById(id);
 const st=t=>$("st").textContent=t;
 let toastT=null;const toast=(t,bad)=>{const e=$("toast");e.textContent=t;e.className=bad?"bad":"";e.style.display="block";clearTimeout(toastT);toastT=setTimeout(()=>e.style.display="none",4000)};
 const gt=()=>{try{return localStorage.getItem("kc_tok")||""}catch(e){return ""}};
+const idb=(mode,fn)=>new Promise(res=>{try{const r=indexedDB.open("kc",1);r.onupgradeneeded=()=>r.result.createObjectStore("k");r.onsuccess=()=>{try{const tx=r.result.transaction("k",mode);const q=fn(tx.objectStore("k"));tx.oncomplete=()=>res(q&&q.result);tx.onerror=()=>res(null)}catch(e){res(null)}};r.onerror=()=>res(null)}catch(e){res(null)}});
 if(!gt())$("set").open=true;
-$("save").onclick=()=>{const tv=$("tok").value.trim();if(!tv){$("chkout").textContent=gt()?"ℹ️ Box khaali hai, isliye purana token waisa hi rakha. Naya daalna ho to pehle paste karo.":"❌ Pehle token paste karo, phir Save dabao.";return}try{try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(x){}localStorage.setItem("kc_tok",tv);$("tok").value="";st("Token save ho gaya ✅");$("chkout").textContent="✅ Token save ho gaya. Ab jaanch kar raha hoon…";setTimeout(loadAll,200);setTimeout(()=>$("chk").click(),300)}catch(e){st("Save nahi hua")}};
+$("save").onclick=()=>{const tv=$("tok").value.trim();if(!tv){$("chkout").textContent=gt()?"ℹ️ Box khaali hai, isliye purana token waisa hi rakha. Naya daalna ho to pehle paste karo.":"❌ Pehle token paste karo, phir Save dabao.";return}try{try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(x){}localStorage.setItem("kc_tok",tv);idb("readwrite",q=>q.put(tv,"tok"));$("tok").value="";st("Token save ho gaya ✅");$("chkout").textContent="✅ Token save ho gaya. Ab jaanch kar raha hoon…";setTimeout(loadAll,200);setTimeout(()=>$("chk").click(),300)}catch(e){st("Save nahi hua")}};
 
 // ---- voice ----
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -552,7 +553,7 @@ armTap($("w1"),"",async()=>{
   wl("✅ "+n+" bhaag ka auto-post roka. Roz shaam 7 baje ab kuch post nahi hoga.");
 });
 armTap($("w2"),"",async()=>{
-  try{localStorage.clear()}catch(e){}
+  try{localStorage.clear()}catch(e){}try{indexedDB.deleteDatabase("kc")}catch(e){}
   $("txt").value="";$("l2").innerHTML="";$("l3").innerHTML="";$("l4").innerHTML="";
   wl("✅ Is phone se token aur sab mita diya. Dobara use karne ke liye naya token daalna padega. GitHub par token alag se delete karo.");
 });
@@ -592,6 +593,8 @@ document.querySelectorAll(".bk").forEach(b=>b.onclick=()=>{location.hash=""});
 document.querySelectorAll(".app .ic").forEach(ic=>ic.insertAdjacentHTML("beforeend","<b class=bd></b>"));
 $("ver").textContent="Page version "+VER;
 fetch("index.html?t="+Date.now(),{cache:"no-store"}).then(r=>r.text()).then(t=>{if(!t.includes('VER="'+VER+'"')){$("upd").style.display="block";$("upd").onclick=()=>location.replace(location.pathname+"?v="+Date.now()+location.hash)}}).catch(()=>{});
+if(gt())idb("readwrite",q=>q.put(gt(),"tok"));
+else idb("readonly",q=>q.get("tok")).then(v=>{if(v&&!gt()){try{localStorage.setItem("kc_tok",v)}catch(e){return}toast("🔑 Token wapas mil gaya, dobara nahi daalna");if(location.hash==="#s6")location.hash="";route();loadAll()}});
 route();if(!gt()&&!location.hash)location.hash="s6";
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script></body></html>
