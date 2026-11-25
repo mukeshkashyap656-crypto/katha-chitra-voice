@@ -131,11 +131,27 @@ function greetText(){
   const h=new Date().getHours();
   return (h<12?"गुड मॉर्निंग सर।":h<17?"गुड आफ्टरनून सर।":"गुड ईवनिंग सर।")+" जार्विस हाज़िर है। आज क्या करना है?";
 }
+// record ki hui salaam: home screen wale app mein bina chhue baj sakti hai (phone wali bolne ki suvidha nahi)
+let clipStop=null,hiddenAt=0;
+function playClip(){
+  return new Promise(res=>{
+    const h=new Date().getHours();let done=false,tm=null,a=null;
+    const stopMe=()=>{if(a)a.pause();end(true)};
+    const end=ok=>{if(done)return;done=true;clearTimeout(tm);if(clipStop===stopMe){clipStop=null;speaking=false;J("jvbox").classList.remove("talk")}res(ok)};
+    try{
+      a=new Audio("salaam-"+(h<12?"subah":h<17?"dopahar":"shaam")+".mp3");clipStop=stopMe;
+      speaking=true;J("jvbox").classList.add("talk");
+      a.onended=()=>end(true);a.onerror=()=>end(false);tm=setTimeout(()=>{a.pause();end(false)},12000);
+      a.play().catch(()=>end(false));
+    }catch(e){end(false)}
+  });
+}
+const sayHello=async()=>(await playClip())||(await speak(greetText()));
 // app khulte hi salaam; browser roke to pehli chhuan par bolo
 async function greet(){
-  const t=greetText();open();J("jvheard").textContent=t;
-  const ok=await speak(t);
-  if(!ok)document.addEventListener("pointerdown",e=>{if(!speaking&&!enrolling&&!cmdRec&&!(e.target.closest&&e.target.closest("button,select,summary")))speak(t)},{once:true,capture:true});
+  open();J("jvheard").textContent=greetText();
+  const ok=await sayHello();
+  if(!ok)document.addEventListener("pointerdown",e=>{if(!speaking&&!enrolling&&!cmdRec&&!(e.target.closest&&e.target.closest("button,select,summary")))sayHello()},{once:true,capture:true});
 }
 // ---- mic: ek-ek bola hua tukda pakdo ----
 function micOff(){
@@ -292,6 +308,7 @@ async function start(quiet){
   if(active&&!cmdRec)listen();
 }
 function stop(){
+  if(clipStop)clipStop();
   active=false;enrolling=null;gen++;micOff();clearTimeout(watchT);
   if(cmdRec){const r=cmdRec;cmdRec=null;try{r.abort()}catch(e){}}
   try{window.speechSynthesis&&window.speechSynthesis.cancel()}catch(e){}speaking=false;
@@ -344,9 +361,14 @@ if(micBtn&&micBtn.onclick){
   };
 }
 document.addEventListener("visibilitychange",async()=>{
-  if(document.hidden){if(enrolling){stop();return}if(active){gen++;micOff();if(cmdRec){const r=cmdRec;cmdRec=null;try{r.abort()}catch(e){}}}}
-  else if(!active)autoStart();
-  else if(active){try{lock=await navigator.wakeLock.request("screen")}catch(e){}listen()}
+  if(document.hidden){hiddenAt=Date.now();if(clipStop)clipStop();if(enrolling){stop();return}if(active){gen++;micOff();if(cmdRec){const r=cmdRec;cmdRec=null;try{r.abort()}catch(e){}}}}
+  else{
+    // thodi der baad app dobara kholne par phir salaam
+    const away=hiddenAt?Date.now()-hiddenAt:0;hiddenAt=0;
+    if(away>60000&&wantAuto()&&!enrolling&&!cmdRec&&!speaking&&!on){if(active){gen++;micOff()}await sayHello();if(document.hidden||cmdRec)return}
+    if(!active)autoStart();
+    else{try{lock=await navigator.wakeLock.request("screen")}catch(e){}listen()}
+  }
 });
 J("jvvoice").onclick=()=>{
   const l=hiVoices();if(!l.length){say("Is phone mein Hindi ki doosri awaaz nahi mili.");return}

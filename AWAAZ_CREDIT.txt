@@ -1,0 +1,2 @@
+salaam-*.mp3: Piper Hindi voice 'pratham' (https://github.com/k2-fsa/sherpa-onnx tts-models).
+Model card dataset licence: CC BY-NC-SA 4.0 (non-commercial). https://creativecommons.org/licenses/by-nc-sa/4.0/
