@@ -79,9 +79,27 @@ if(typeof module!=="undefined"&&module.exports){module.exports=core;return}
 
 // ---------- page wala hissa ----------
 const KEY="kc_jarvis_voice",LKEY="kc_jarvis_level";
-const load=()=>{try{const p=JSON.parse(localStorage.getItem(KEY)||"null");return p&&p.v===1&&isFinite(p.base)?p:null}catch(e){return null}};
+const parse=t=>{try{const p=JSON.parse(t||"null");return p&&p.v===1&&isFinite(p.base)&&Array.isArray(p.list)&&p.list.length?p:null}catch(e){return null}};
+const stored=()=>{try{return localStorage.getItem(KEY)}catch(e){return null}};
+const load=()=>parse(stored());
 const level=()=>{try{return localStorage.getItem(LKEY)||"beech"}catch(e){return "beech"}};
 let profile=load(),active=false,gen=0,stream=null,ctx=null,node=null,lock=null,cmdRec=null,enrolling=null,speaking=false,watchT=null;
+
+// awaaz do jagah rakho; ek mit jaaye to doosri se wapas lao
+const keepSafe=()=>{try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{})}catch(e){}};
+async function saveVoice(p){
+  const t=JSON.stringify(p);let one=false;
+  try{localStorage.setItem(KEY,t);one=true}catch(e){}
+  await idb("readwrite",q=>q.put(t,"voice"));
+  const two=(await idb("readonly",q=>q.get("voice")))===t;
+  keepSafe();return one||two;
+}
+async function restoreVoice(){
+  if(profile){if(!(await idb("readonly",q=>q.get("voice"))))await saveVoice(profile);else keepSafe();return}
+  const t=await idb("readonly",q=>q.get("voice")),p=parse(t);
+  if(p&&!profile&&!enrolling){profile=p;try{localStorage.setItem(KEY,t)}catch(e){}keepSafe();ui()}
+}
+const forgetVoice=()=>{try{localStorage.removeItem(KEY)}catch(e){}return idb("readwrite",q=>q.delete("voice"))};
 
 const css=document.createElement("style");
 css.textContent=`#jvbtn{position:fixed;left:18px;bottom:18px;z-index:40;width:64px;height:64px;border:0;border-radius:50%;padding:0;margin:0;background:radial-gradient(circle,#0a4a68 0,#03202f 55%,#010a10 100%);box-shadow:0 0 16px rgba(56,225,255,.75)}
@@ -109,7 +127,7 @@ const J=id=>document.getElementById(id);
 const say=t=>{J("jvsay").textContent=t};
 function ui(){
   J("jvgo").textContent=active?"⏹ Jarvis band karo":"▶ Jarvis chalu karo";
-  J("jvteach").textContent=profile?"🎙 Meri awaaz dobara sikhao":"🎙 Pehle meri awaaz sikhao";
+  J("jvteach").textContent=profile?"✅ Awaaz save hai · badalni ho to dabao":"🎙 Pehle meri awaaz sikhao";
   J("jvbox").classList.toggle("live",active||!!enrolling);
   J("jvbtn").classList.toggle("live",active);
 }
@@ -267,8 +285,8 @@ async function teach(){
       if(list.length===6){
         const p=makeProfile(list);enrolling=null;gen++;micOff();
         if(!isFinite(p.base)){say("Namoone aapas mein mile nahi. Phir se sikhao.");ui();return}
-        try{localStorage.setItem(KEY,JSON.stringify(p));profile=p}catch(e){say("Phone mein save nahi hua.");ui();return}
-        setAuto(true);start();
+        profile=p;
+        saveVoice(p).then(ok=>{if(!ok){say("Phone mein save nahi hua.");ui();return}setAuto(true);start()});
       }
     });
   }catch(e){enrolling=null;ui();micErr(e)}
@@ -445,10 +463,11 @@ const firstTap=e=>{
   if(canAuto())start();
 };
 document.addEventListener("click",firstTap,true);
-J("jvteach").onclick=teach;
+let again=0;
+J("jvteach").onclick=()=>{if(profile&&Date.now()-again>4000){again=Date.now();say("Awaaz pehle se save hai. Nayi sikhani ho tabhi ek baar aur dabao.");return}again=0;teach()};
 J("jvlvl").value=level();J("jvlvl").onchange=()=>{try{localStorage.setItem(LKEY,J("jvlvl").value)}catch(e){}};
 let armed=0;J("jvmem").onclick=()=>{if(Date.now()-armed>4000){armed=Date.now();say("Pakka? Ek baar aur dabao. Yaad ki "+mems().length+" baatein mit jayengi.");return}armed=0;try{localStorage.removeItem(MKEY)}catch(e){}say("Yaad ki baatein mita di.")};
-J("jvdel").onclick=()=>{stop();try{localStorage.removeItem(KEY)}catch(e){}profile=null;ui();say("Awaaz mita di.")};
+let delArmed=0;J("jvdel").onclick=async()=>{if(Date.now()-delArmed>4000){delArmed=Date.now();say("Pakka? Ek baar aur dabao, tab awaaz mitegi.");return}delArmed=0;stop();profile=null;await forgetVoice();ui();say("Awaaz mita di.")};
 // purana mic dabe to Jarvis mic chhod de
 ["mic","hmic","fab"].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener("click",()=>{if(active||enrolling)stop()},true)});
 const micBtn=document.getElementById("mic");
@@ -489,5 +508,5 @@ J("jvvoice").onclick=()=>{
 };
 try{window.speechSynthesis.getVoices()}catch(e){}
 ui();
-boot();
+restoreVoice().catch(()=>{}).then(()=>{ui();boot()});
 })(this);
