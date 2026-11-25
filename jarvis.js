@@ -118,6 +118,12 @@ const hiVoices=()=>{try{return window.speechSynthesis.getVoices().filter(v=>/^hi
 function pickVoice(){const l=hiVoices();let w="";try{w=localStorage.getItem(VKEY)||""}catch(e){}return l.find(v=>v.voiceURI===w)||l.find(v=>/(^|[^e])male|madhur|hemant|hid|hie/i.test(v.name+" "+v.voiceURI))||l[0]}
 // jawab: true = bola gaya, false = browser ne bina chhuye bolne nahi diya
 function speak(text){
+  const f=FIXED[text];
+  return f?playFile(f,Math.max(12000,text.length*200)).then(ok=>ok||speakPhone(text)):speakPhone(text);
+}
+// tay jawab: record ki hui awaaz
+const FIXED={"जी, बोलिए": "jv-boliye.mp3", "ठीक है, मैं रुक रहा हूँ": "jv-rukta.mp3", "टेक्स्ट बॉक्स में पहले से कुछ लिखा है। पहले उसे भेजिए या मिटाइए": "jv-pehle.mp3", "यह ज़रूरी काम है। पढ़कर भेजो बटन दबाइए": "jv-zaroori.mp3", "पहले सेटअप में टोकन डालिए": "jv-token.mp3", "बात भेजी नहीं जा सकी": "jv-nahi.mp3", "भेज दिया। जवाब आते ही सुनाऊँगा": "jv-bheja.mp3", "जवाब अभी तक नहीं आया। चैट में देख लीजिए": "jv-intezaar.mp3", "जार्विस चालू है": "jv-chalu.mp3", "हेलो सर, आज क्या करना है?": "jv-hello.mp3"};
+function speakPhone(text){
   return new Promise(res=>{
     const S=window.speechSynthesis;if(!S||!text){res(false);return}
     speaking=true;J("jvbox").classList.add("talk");let done=false,started=false,tm=null;
@@ -134,14 +140,19 @@ function greetText(){
 // record ki hui salaam: home screen wale app mein bina chhue baj sakti hai (phone wali bolne ki suvidha nahi)
 let clipStop=null,hiddenAt=0;
 function playClip(){
+  const h=new Date().getHours();
+  return playFile("salaam-"+(h<12?"subah":h<17?"dopahar":"shaam")+".mp3",12000);
+}
+function playFile(src,limit){
   return new Promise(res=>{
-    const h=new Date().getHours();let done=false,tm=null,a=null;
+    let done=false,tm=null,a=null;
     const stopMe=()=>{if(a)a.pause();end(true)};
     const end=ok=>{if(done)return;done=true;clearTimeout(tm);if(clipStop===stopMe){clipStop=null;speaking=false;J("jvbox").classList.remove("talk")}res(ok)};
     try{
-      a=new Audio("salaam-"+(h<12?"subah":h<17?"dopahar":"shaam")+".mp3");clipStop=stopMe;
+      if(clipStop)clipStop();
+      a=new Audio(src);clipStop=stopMe;
       speaking=true;J("jvbox").classList.add("talk");
-      a.onended=()=>end(true);a.onerror=()=>end(false);tm=setTimeout(()=>{a.pause();end(false)},12000);
+      a.onended=()=>end(true);a.onerror=()=>end(false);tm=setTimeout(()=>{a.pause();end(false)},limit);
       a.play().catch(()=>end(false));
     }catch(e){end(false)}
   });
