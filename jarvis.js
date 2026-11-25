@@ -86,7 +86,7 @@ let profile=load(),active=false,gen=0,stream=null,ctx=null,node=null,lock=null,c
 const css=document.createElement("style");
 css.textContent="#jvbtn{position:fixed;left:14px;bottom:86px;z-index:40;border:1px solid #38e1ff;border-radius:24px;padding:10px 14px;background:#041a24;color:#bff4ff;font-size:15px;box-shadow:0 0 14px rgba(56,225,255,.6)}#jvbox{position:fixed;inset:0;z-index:60;background:rgba(2,10,18,.97);color:#dff8ff;display:none;flex-direction:column;align-items:center;gap:12px;padding:20px 16px;overflow:auto}#jvorb{width:130px;height:130px;flex:none;border-radius:50%;background:radial-gradient(circle,#bff4ff 0,#38e1ff 30%,#063a52 70%);box-shadow:0 0 30px #38e1ff;opacity:.45}#jvbox.live #jvorb{opacity:1;animation:jvp 1.6s ease-in-out infinite}@keyframes jvp{50%{transform:scale(1.07)}}#jvbox button,#jvbox select{width:100%;max-width:420px;border:1px solid #38e1ff;border-radius:12px;padding:13px;background:#063044;color:#fff;font-size:16px}#jvsay,#jvnote{max-width:420px;text-align:center;line-height:1.5}#jvnote{font-size:12.5px;opacity:.75}#jvheard{font-size:14px;color:#ffe082;min-height:20px;text-align:center}";
 document.head.appendChild(css);
-document.body.insertAdjacentHTML("beforeend",'<button id="jvbtn">🤖 Jarvis</button><div id="jvbox"><div id="jvorb"></div><div id="jvsay"></div><div id="jvheard"></div><button id="jvgo"></button><button id="jvteach"></button><select id="jvlvl"><option value="dheela">Pehchan: dheeli (aasani se sune)</option><option value="beech">Pehchan: beech ki</option><option value="sakht">Pehchan: sakht (sirf saaf meri awaaz)</option></select><button id="jvdel">🗑 Meri awaaz mitao</button><button id="jvclose">◀ Wapas</button><div id="jvnote">Jarvis tabhi sunta hai jab ye page khula ho aur screen chalu ho. Awaaz ka namoona sirf isi phone mein rehta hai. Uske baad ki baat ko likhne ke liye Chrome awaaz Google ko bhejta hai. Ye pehchan taala nahi hai: milti-julti awaaz ya recording dhokha de sakti hai.</div></div>');
+document.body.insertAdjacentHTML("beforeend",'<button id="jvbtn">🤖 Jarvis</button><div id="jvbox"><div id="jvorb"></div><div id="jvsay"></div><div id="jvheard"></div><button id="jvgo"></button><button id="jvteach"></button><select id="jvlvl"><option value="dheela">Pehchan: dheeli (aasani se sune)</option><option value="beech">Pehchan: beech ki</option><option value="sakht">Pehchan: sakht (sirf saaf meri awaaz)</option></select><button id="jvmem">🧠 Yaad ki baatein mitao (do baar dabao)</button><button id="jvdel">🗑 Meri awaaz mitao</button><button id="jvclose">◀ Wapas</button><div id="jvnote">Jarvis tabhi sunta hai jab ye page khula ho aur screen chalu ho. Awaaz ka namoona sirf isi phone mein rehta hai. Uske baad ki baat ko likhne ke liye Chrome awaaz Google ko bhejta hai. Ye pehchan taala nahi hai: milti-julti awaaz ya recording dhokha de sakti hai.</div></div>');
 const J=id=>document.getElementById(id);
 const say=t=>{J("jvsay").textContent=t};
 function ui(){
@@ -181,11 +181,31 @@ async function woke(){
   rec.onend=()=>{clearTimeout(timer);if(cmdRec!==rec)return;cmdRec=null;if(active)handle(got.trim())};
   try{rec.start()}catch(e){clearTimeout(timer);cmdRec=null;listen()}
 }
+// "yaad rakho ..." wali baatein, sirf isi phone mein
+const MKEY="kc_jarvis_mem";
+const mems=()=>{try{const a=JSON.parse(localStorage.getItem(MKEY)||"[]");return Array.isArray(a)?a:[]}catch(e){return []}};
+const SECRET=/token|password|otp|github_pat|ghp_|टोकन|पासवर्ड|ओटीपी|\d{6,}/i;
+function memory(cmd){
+  const m=cmd.match(/^(?:jarvis |जार्विस )?(?:yaad rakh(?:o|na)|याद रख(?:ो|ना))(?: ki| कि)?\s+(.+)$/i);
+  if(m){
+    if(SECRET.test(m[1]))return "टोकन, पासवर्ड या लंबे नंबर मैं याद नहीं रखता";
+    const v=m[1].slice(0,200),a=mems().filter(x=>x!==v);a.push(v);
+    try{localStorage.setItem(MKEY,JSON.stringify(a.slice(-100)))}catch(e){return "याद सेव नहीं हुई"}
+    return "ठीक है सर, याद रख लिया";
+  }
+  if(/kya yaad hai|kya kya yaad|क्या याद है|क्या क्या याद|क्या-क्या याद/i.test(cmd)){
+    const a=mems();return a.length?"मुझे यह याद है: "+a.slice(-8).join("। "):"अभी कुछ याद नहीं है";
+  }
+  return null;
+}
 // zaroori kaam awaaz se apne aap nahi jaate
 const RISKY=/delete|remove|publish|upload|post|public|private|token|password|payment|paisa|paise|stop|cancel|hata|mita|band kar|rok|डिलीट|हटा|मिटा|पोस्ट|पब्लिश|अपलोड|पब्लिक|प्राइवेट|टोकन|पासवर्ड|पेमेंट|पैस|रोक|बंद कर|कैंसल/i;
 async function handle(cmd){
+  cmd=cmd.replace(/^\s*(?:(?:jarvis|जार्विस|जारविस)(?:[\s,।]+|$))+/i,"");
   if(!cmd){listen();return}
   const c=cmd.toLowerCase();
+  const mem=memory(cmd);
+  if(mem){say(mem);await speak(mem);listen();return}
   if(/^(jarvis |जार्विस )?(ruko|chup|so jao|band ho jao|रुको|चुप|सो जाओ|बंद हो जाओ)\s*(jarvis|जार्विस)?$/.test(c)){await speak("ठीक है, मैं रुक रहा हूँ");stop();return}
   if(/kitne baje|time kya|कितने बजे|टाइम क्या|समय क्या/.test(c)){await speak("अभी "+new Date().toLocaleTimeString("hi-IN",{hour:"numeric",minute:"2-digit"})+" हुए हैं");listen();return}
   const pages=[[/video|वीडियो/,"s3","वीडियो"],[/youtube|यूट्यूब/,"s4","यूट्यूब"],[/blog|ब्लॉग/,"s7","ब्लॉग"]];
@@ -236,9 +256,22 @@ J("jvbtn").onclick=open;J("jvclose").onclick=close;
 J("jvgo").onclick=()=>active?stop():start();
 J("jvteach").onclick=teach;
 J("jvlvl").value=level();J("jvlvl").onchange=()=>{try{localStorage.setItem(LKEY,J("jvlvl").value)}catch(e){}};
+let armed=0;J("jvmem").onclick=()=>{if(Date.now()-armed>4000){armed=Date.now();say("Pakka? Ek baar aur dabao. Yaad ki "+mems().length+" baatein mit jayengi.");return}armed=0;try{localStorage.removeItem(MKEY)}catch(e){}say("Yaad ki baatein mita di.")};
 J("jvdel").onclick=()=>{stop();try{localStorage.removeItem(KEY)}catch(e){}profile=null;ui();say("Awaaz mita di.")};
 // purana mic dabe to Jarvis mic chhod de
 ["mic","hmic","fab"].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener("click",()=>{if(active||enrolling)stop()},true)});
+const micBtn=document.getElementById("mic");
+if(micBtn&&micBtn.onclick){
+  const orig=micBtn.onclick;let greeting=false;
+  micBtn.onclick=async function(e){
+    if(on||!SR)return orig.call(micBtn,e);
+    if(greeting)return;
+    greeting=true;st("Jarvis: Hello sir, aaj kya karna hai?");
+    await speak("हेलो सर, आज क्या करना है?");
+    greeting=false;
+    if(location.hash==="#s1"&&!document.hidden&&!on&&!active)orig.call(micBtn,e);
+  };
+}
 document.addEventListener("visibilitychange",async()=>{
   if(document.hidden){if(enrolling){stop();return}if(active){gen++;micOff();if(cmdRec){const r=cmdRec;cmdRec=null;try{r.abort()}catch(e){}}}}
   else if(active){try{lock=await navigator.wakeLock.request("screen")}catch(e){}listen()}
