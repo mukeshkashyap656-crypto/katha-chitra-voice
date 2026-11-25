@@ -173,9 +173,10 @@ async function loadVoice(){
   return r.ok;
 }
 // pehla tukda chhota (jaldi bolna shuru ho), baaki 140 akshar tak
-const pieces=t=>{const out=[];let cur="";for(let s of (t.match(/[^।.?!\n]+(?:[।?!]+|\.+(?!\d))*|[।.?!]+/g)||[t])){
-  if(!out.length&&!cur&&s.length>60){const k=s.indexOf(",",15);if(k>0&&k<90){out.push(s.slice(0,k+1));s=s.slice(k+1)}}
-  if(cur&&(!out.length||(cur+s).length>140)){out.push(cur);cur=""}cur+=s}if(cur.trim())out.push(cur);return out.filter(x=>x.trim())};
+const pieces=t=>{const out=[];let cur="";
+  const parts=(t.match(/[^।.?!\n]+(?:[।?!]+|\.+(?!\d))*|[।.?!]+/g)||[t]).flatMap(x=>x.length>70?x.split(/(?<=,)(?!\d)/):[x]);
+  for(const x of parts){if(cur&&(!out.length||(cur+x).length>70)){out.push(cur);cur=""}cur+=x}
+  if(cur.trim())out.push(cur);return out.filter(x=>x.trim())};
 // Bolne se pehle: English akshar wali Hindi ko Hindi lipi mein. Warna awaaz "baje" jaise shabd angrezi ki tarah padhti hai.
 const HW=new Map("hai:है hain:हैं hoon:हूँ hun:हूँ ho:हो tha:था thi:थी the:थे hoga:होगा hogi:होगी hoge:होगे hua:हुआ hui:हुई hue:हुए huye:हुए hona:होना hone:होने hota:होता hoti:होती hote:होते hokar:होकर hoya:होया ka:का ki:की ke:के ko:को se:से mein:में mai:मैं main:मैं me:में par:पर pe:पे tak:तक liye:लिए saath:साथ baad:बाद pehle:पहले bina:बिना wala:वाला wali:वाली wale:वाले aur:और ya:या lekin:लेकिन magar:मगर kyunki:क्योंकि kyonki:क्योंकि agar:अगर toh:तो to:तो bhi:भी hi:ही na:ना nahi:नहीं nahin:नहीं nhi:नहीं mat:मत haan:हाँ han:हाँ ji:जी achha:अच्छा accha:अच्छा acha:अच्छा theek:ठीक thik:ठीक sahi:सही galat:ग़लत bas:बस phir:फिर fir:फिर ab:अब abhi:अभी aaj:आज kal:कल parso:परसों roz:रोज़ subah:सुबह dopahar:दोपहर shaam:शाम sham:शाम raat:रात din:दिन samay:समय baje:बजे baj:बज bajkar:बजकर minute:मिनट ghanta:घंटा ghante:घंटे der:देर jaldi:जल्दी turant:तुरंत kabhi:कभी hamesha:हमेशा karib:क़रीब kareeb:क़रीब lagbhag:लगभग kya:क्या kyu:क्यों kyun:क्यों kyon:क्यों kaise:कैसे kaisa:कैसा kaisi:कैसी kab:कब kahan:कहाँ kaun:कौन kaunsa:कौनसा kitna:कितना kitne:कितने kitni:कितनी koi:कोई kuch:कुछ sab:सब sabhi:सभी har:हर ek:एक do:दो teen:तीन char:चार paanch:पाँच saat:सात aath:आठ pehla:पहला doosra:दूसरा dusra:दूसरा agla:अगला agle:अगले agli:अगली pichhla:पिछला pichla:पिछला pichhle:पिछले pichle:पिछले aakhri:आख़िरी akhri:आख़िरी naya:नया nayi:नई naye:नए purana:पुराना yeh:यह ye:ये woh:वह wo:वो is:इस us:उस isme:इसमें ismein:इसमें usme:उसमें iska:इसका uska:उसका iski:इसकी uski:उसकी isko:इसको usko:उसको ise:इसे use:उसे inko:इनको unko:उनको yahan:यहाँ yahin:यहीं wahan:वहाँ wahin:वहीं aisa:ऐसा aise:ऐसे waisa:वैसा waise:वैसे jaisa:जैसा jaise:जैसे jab:जब tab:तब jo:जो jis:जिस mera:मेरा meri:मेरी mere:मेरे mujhe:मुझे maine:मैंने hum:हम hamara:हमारा humne:हमने aap:आप aapka:आपका aapki:आपकी aapke:आपके aapko:आपको aapne:आपने tum:तुम tumhara:तुम्हारा apna:अपना apni:अपनी apne:अपने khud:ख़ुद kar:कर karo:करो karna:करना karne:करने karni:करनी karta:करता karti:करती karte:करते karun:करूँ karoon:करूँ karunga:करूँगा karenge:करेंगे kiya:किया kiye:किए kijiye:कीजिए karke:करके kardo:कर_दो diya:दिया diye:दिए dena:देना dene:देने deta:देता deti:देती dijiye:दीजिए dunga:दूँगा lo:लो lena:लेना liya:लिया lijiye:लीजिए leta:लेता gaya:गया gayi:गई gaye:गए gya:गया jana:जाना jaana:जाना jane:जाने jaane:जाने ja:जा jao:जाओ jata:जाता jati:जाती jaata:जाता jaati:जाती jayega:जाएगा jayegi:जाएगी jaayega:जाएगा jaayegi:जाएगी jaayenge:जाएँगे aa:आ aana:आना aane:आने aaya:आया aayi:आई aaye:आए aata:आता aati:आती aayega:आएगा aayegi:आएगी raha:रहा rahi:रही rahe:रहे rha:रहा rhi:रही rhe:रहे rahega:रहेगा sakta:सकता sakti:सकती sakte:सकते sakun:सकूँ paya:पाया payi:पाई payega:पाएगा chahiye:चाहिए chaye:चाहिए chahte:चाहते chahta:चाहता chaho:चाहो bol:बोल bolo:बोलो bolna:बोलना boliye:बोलिए bola:बोला bata:बता batao:बताओ batata:बताता bataiye:बताइए bataya:बताया baat:बात baatein:बातें dekh:देख dekho:देखो dekhiye:देखिए dekha:देखा dekhta:देखता dikh:दिख dikha:दिखा dikhao:दिखाओ sun:सुन suno:सुनो suna:सुना samajh:समझ samjha:समझा soch:सोच likh:लिख likha:लिखा likhe:लिखे likhi:लिखी padh:पढ़ bhej:भेज bheja:भेजा bheji:भेजी bhejo:भेजो mil:मिल mila:मिला milta:मिलता milega:मिलेगा chal:चल chala:चला chalu:चालू chalta:चलता chalte:चलते chalega:चलेगा chalane:चलाने chalata:चलाता ruk:रुक ruko:रुको roka:रोका ban:बन bana:बना banana:बनाना banane:बनाने banaya:बनाया banega:बनेगा banata:बनाता lag:लग laga:लगा lagta:लगता lagega:लगेगा daal:डाल dalna:डालना daalna:डालना daalne:डालने dalne:डालने rakh:रख rakha:रखा khul:खुल khol:खोल kholo:खोलो poochh:पूछ pooch:पूछ poocha:पूछा jaan:जान pata:पता atak:अटक atka:अटका kaam:काम kaamon:कामों line:लाइन list:लिस्ट bhaag:भाग bhag:भाग jawab:जवाब sawal:सवाल sawaal:सवाल gadbad:गड़बड़ dikkat:दिक़्क़त haal:हाल halat:हालत tay:तय taiyar:तैयार tayyar:तैयार poora:पूरा pura:पूरा poori:पूरी thoda:थोड़ा thodi:थोड़ी bahut:बहुत zyada:ज़्यादा jyada:ज़्यादा kam:कम zaroor:ज़रूर zarur:ज़रूर zaroorat:ज़रूरत zaroori:ज़रूरी jaankari:जानकारी ijazat:इजाज़त naam:नाम neeche:नीचे upar:ऊपर andar:अंदर bahar:बाहर paas:पास door:दूर dobara:दोबारा alag:अलग doosre:दूसरे aam:आम awaaz:आवाज़ awaz:आवाज़ chaabi:चाबी maaf:माफ़ shukriya:शुक्रिया namaste:नमस्ते sir:सर video:वीडियो videos:वीडियोज़ youtube:यूट्यूब instagram:इंस्टाग्राम github:गिटहब upload:अपलोड post:पोस्ट channel:चैनल episode:एपिसोड blog:ब्लॉग page:पेज phone:फ़ोन app:ऐप token:टोकन setup:सेटअप setting:सेटिंग settings:सेटिंग्स status:स्टेटस check:चेक update:अपडेट download:डाउनलोड delete:डिलीट message:मैसेज chat:चैट mic:माइक ready:रेडी schedule:शेड्यूल error:एरर link:लिंक reply:रिप्लाई view:व्यू views:व्यूज़ shorts:शॉर्ट्स reel:रील cover:कवर title:टाइटल ok:ओके okay:ओके please:प्लीज़ thank:थैंक you:यू good:गुड morning:मॉर्निंग evening:ईवनिंग afternoon:आफ़्टरनून problem:प्रॉब्लम time:टाइम late:लेट test:टेस्ट save:सेव google:गूगल ai:ए_आई jarvis:जार्विस net:नेट internet:इंटरनेट button:बटन screen:स्क्रीन".split(" ").map(p=>{const i=p.indexOf(":");return [p.slice(0,i),p.slice(i+1).replace(/_/g," ")]}));
 // ye shabd Hindi vakya ki pakki pehchaan hain (poora English vakya jaisa hai waisa rehta hai)
@@ -189,23 +190,47 @@ async function speakAny(text){
   text=bolne(text);
   if(!ttsReady||!text)return speakPhone(text);
   const run=++sayRun,list=pieces(text);
-  const make=i=>i<list.length?ttsMsg({text:list[i]},45000):null;
-  let nextOne=make(0);
   speaking=true;J("jvbox").classList.add("talk");
   const done=v=>{speaking=false;J("jvbox").classList.remove("talk");return v};
+  // tukde ek ke baad ek bante rehte hain; bolna tabhi shuru jab beech mein atakne ka darr na ho
+  const got=[],speed={work:0,audio:0,chars:0};let wake=()=>{},bad=false;
+  (async()=>{
+    for(const t of list){
+      const t0=performance.now(),r=await ttsMsg({text:t},45000);
+      if(run!==sayRun)break;
+      if(!r.ok||!r.wav){bad=true;break}
+      const dv=new DataView(r.wav),sec=(r.wav.byteLength-44)/2/dv.getUint32(24,true);
+      speed.work+=(performance.now()-t0)/1000;speed.audio+=sec;speed.chars+=t.length;
+      got.push({wav:r.wav,sec});wake();
+    }
+    wake();
+  })();
+  const more=()=>new Promise(res=>{wake=res;setTimeout(res,1000)});
+  // aage ka hissa banne mein jitna time lagega, utni awaaz pehle se jama hai?
+  const enough=i=>{
+    if(got.length<=i)return false;
+    if(got.length>=list.length)return true;
+    const perChar=speed.audio/speed.chars,slow=speed.work/speed.audio;
+    const left=list.slice(got.length).reduce((n,t)=>n+t.length,0)*perChar;
+    const have=got.slice(i).reduce((n,g)=>n+g.sec,0);
+    // agla tukda jama awaaz khatam hone se pehle ban jaaye
+    return (have>=left*slow*1.15-left+0.3&&have>=list[got.length].length*perChar*slow*1.15)||have>=20;
+  };
+  let waiting=true;
   for(let i=0;i<list.length;i++){
-    const r=await nextOne;
+    if(got.length<=i)waiting=true;
+    while(waiting&&!bad&&!enough(i)){await more();if(run!==sayRun)return true}
+    waiting=false;
     if(run!==sayRun)return true;
-    if(!r.ok||!r.wav){done();return i?false:speakPhone(text)}
-    // ye tukda bajte-bajte agla ban jaata hai, taaki beech mein chuppi na ho
-    nextOne=make(i+1);
-    const u=URL.createObjectURL(new Blob([r.wav],{type:"audio/wav"}));
-    speaking=true;
+    if(!got[i]){if(bad){done();return i?false:speakPhone(text)}i--;waiting=true;await more();continue}
+    const u=URL.createObjectURL(new Blob([got[i].wav],{type:"audio/wav"}));
+    speaking=true;J("jvbox").classList.add("talk");
     const ok=await playFile(u,90000);URL.revokeObjectURL(u);
     if(run!==sayRun)return true;
     if(!ok)return done(false);
     if(i<list.length-1){speaking=true;J("jvbox").classList.add("talk")}
   }
+  if(speed.audio)label("✅ Har jawab isi awaaz mein · banne ki raftaar "+(speed.work/speed.audio).toFixed(1));
   return done(true);
 }
 const hush=()=>{sayRun++;if(clipStop)clipStop();speaking=false;J("jvbox").classList.remove("talk");try{window.speechSynthesis.cancel()}catch(e){}};
@@ -271,7 +296,7 @@ async function micOn(onPiece){
       return;
     }
     seg.push(x);len+=dur;quiet=lv>th*0.6?0:quiet+dur;
-    if(quiet>0.45||len>4){
+    if(quiet>(enrolling?0.45:0.3)||len>4){
       const all=new Float32Array(seg.reduce((n,a)=>n+a.length,0));let o=0;for(const a of seg){all.set(a,o);o+=a.length}
       seg=null;if(len>4){floor=Math.min(0.05,Math.max(floor,lv*0.6));return}
       onPiece(all,rate);
@@ -313,9 +338,20 @@ async function listen(){
     });
   }catch(e){stop();micErr(e)}
 }
+// pehchan hote hi chhoti si awaaz, taaki aap bina ruke bol sakein
+function ting(){
+  return new Promise(res=>{
+    try{
+      const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();
+      o.frequency.value=880;g.gain.setValueAtTime(0.25,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.16);
+      o.connect(g);g.connect(c.destination);c.resume();o.start();o.stop(c.currentTime+0.16);
+      setTimeout(()=>{c.close();res()},180);
+    }catch(e){res()}
+  });
+}
 async function woke(){
   gen++;micOff();const my=gen;J("jvbox").style.display="flex";J("jvheard").textContent="";say("Ji, boliye…");
-  await speak(line("boliye"));
+  await ting();
   if(!active||my!==gen)return;
   const R=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!R){say("Is browser mein bolkar likhna nahi chalta. Chrome use karo.");stop();return}
