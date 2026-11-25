@@ -359,6 +359,8 @@ async function confirmVoice(cmd){
 }
 // delete, post jaise zaroori kaam bina "haan" ke nahi jaate
 const RISKY=/delete|remove|publish|upload|post|public|private|token|password|payment|paisa|paise|stop|cancel|hata|mita|band kar|rok|डिलीट|हटा|मिटा|पोस्ट|पब्लिश|अपलोड|पब्लिक|प्राइवेट|टोकन|पासवर्ड|पेमेंट|पैस|रोक|बंद कर|कैंसल/i;
+// sirf "abhi kitne baje hain" jaisa seedha sawal; "kal kitne baje upload hogi" isme nahi aata
+const ASK_TIME=/^(?:(?:abhi|अभी|zara|ज़रा|जरा)\s+)?(?:(?:kitne|कितने)\s+(?:baje|baj|बजे|बज)(?:\s+(?:abhi|अभी))?(?:\s+(?:hain?|hue|huye|rahe|gaye?|है|हैं|हुए|रहे|गए|गये))*|(?:(?:kya|क्या)\s+)?(?:time|samay|टाइम|समय)(?:\s+(?:abhi|अभी))?(?:\s+(?:kya|क्या))?(?:\s+(?:hua|ho|raha|hai|हुआ|हो|रहा|है))*)(?:\s+(?:abhi|अभी|sir|सर|batao|बताओ))*[\s?।.!]*$/i;
 async function handle(cmd){
   cmd=cmd.replace(/^\s*(?:(?:jarvis|जार्विस|जारविस)(?:[\s,।]+|$))+/i,"");
   if(!cmd){listen();return}
@@ -370,7 +372,7 @@ async function handle(cmd){
     if(v&&gt()&&!tb.value.trim()){location.hash="s1";tb.value="याद रखो "+v;try{await sendGH()}catch(e){}if(tb.value.trim())tb.value=""}
     await speak(mem);listen();return}
   if(/^(jarvis |जार्विस )?(ruko|chup|so jao|band ho jao|रुको|चुप|सो जाओ|बंद हो जाओ)\s*(jarvis|जार्विस)?$/.test(c)){await speak(line("rukta"));stop();return}
-  if(/kitne baje|time kya|कितने बजे|टाइम क्या|समय क्या/.test(c)){await speak(timeLine(new Date()));listen();return}
+  if(ASK_TIME.test(c.trim())){await speak(timeLine(new Date()));listen();return}
   const pages=[[/video|वीडियो/,"s3","वीडियो"],[/youtube|यूट्यूब/,"s4","यूट्यूब"],[/blog|ब्लॉग/,"s7","ब्लॉग"]];
   for(const [re,h,n] of pages)if(re.test(c)&&/dikhao|kholo|दिखाओ|खोलो/.test(c)&&c.split(/\s+/).length<=4){location.hash=h;close();await speak("लीजिए सर, "+n+" वाला पेज खुल गया।");listen();return}
   if(window.kcQuick&&window.kcQuick.isStatus(cmd)){

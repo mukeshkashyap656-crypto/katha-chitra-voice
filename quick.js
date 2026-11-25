@@ -69,7 +69,32 @@ async function system(){
 const isCommand=t=>/^\s*@ai\b|JAANCH-VIDEO|^\s*(?:jarvis |जार्विस )?(?:yaad rakh|याद रख)/i.test(t);
 // haal-chaal wale sawal: page khud GitHub se padh kar turant batata hai (AI ki zarurat nahi)
 const ASK_STATUS=/^(?:(?:jarvis|जार्विस)[\s,]+)?(?:(?:github|गिटहब|git hub)\s*(?:(?:ka|का|par|पर|mein|में)\s*)?)?(?:(?:abhi|अभी|aaj|आज)\s*)?(?:(?:kya (?:chal|ho) raha hai|क्या (?:चल|हो) रहा है)|(?:(?:mera |मेरा )?(?:kaam|काम|video|वीडियो)\s*)?(?:(?:ka |का )?(?:status|स्टेटस|haal|हाल)(?:\s*(?:kya hai|क्या है|batao|बताओ))?|(?:kahan tak (?:pahuncha|hua)|कहाँ तक (?:पहुँचा|पहुंचा|हुआ))(?:\s*(?:hai|है))?|(?:ho ?gaya|hua|bana|ban gaya|हो गया|हुआ|बना|बन गया)\s*(?:kya|क्या)(?:\s*(?:nahi|नहीं))?)|(?:koi |कोई )?(?:gadbad|dikkat|error|गड़बड़|दिक्कत|एरर)(?:\s*(?:hai|aayi|है|आई))?(?:\s*(?:kya|क्या))?|(?:jawab|reply|जवाब|रिप्लाई)\s*(?:aaya|आया)(?:\s*(?:kya|क्या))?(?:\s*(?:nahi|नहीं))?)[\s?।.!]*$/i;
-const isStatus=t=>ASK_STATUS.test(String(t).trim());
+// "video kab / kitne baje upload hogi" - jawab bhaagon ki asli list se
+function isWhen(t){
+  const c=String(t).toLowerCase();
+  return /upload|post|publish|youtube|अपलोड|पोस्ट|पब्लिश|यूट्यूब/.test(c)
+    &&/kitne baje|kis time|kis samay|kab\b|कितने बजे|किस टाइम|किस समय|कब(?![\u0900-\u097F])/.test(c)
+    &&/hogi|hoga|hoge|jayegi|jaayegi|jayega|jaayega|aayegi|aayega|aaegi|होगी|होगा|जाएगी|जायेगी|जाएगा|जायेगा|आएगी|आयेगी|आएगा|आयेगा/.test(c)
+    &&!/blog|ब्लॉग|instagram ke views|views|व्यूज/.test(c)&&!/^\s*@ai/.test(c);
+}
+const isStatus=t=>ASK_STATUS.test(String(t).trim())||isWhen(t);
+const istDay=n=>new Date(Date.now()+19800000+n*86400000).toISOString().slice(0,10);
+async function whenUpload(text,L){
+  const eps=JSON.parse(await rawText("episodes.json","main"));
+  const list=Object.keys(eps).map(k=>({k,...eps[k]})).filter(e=>e.status==="ready"&&e.auto!==false&&!e.youtube_id&&e.date>=istDay(0))
+    .sort((a,b)=>a.date.localeCompare(b.date)||a.k-b.k);
+  const want=/aaj|आज/i.test(text)?0:(/(^|\s)(kal|कल)(\s|$)/i.test(text)?1:null);
+  const day=d=>d===istDay(0)?L("आज","aaj"):d===istDay(1)?L("कल","kal"):new Date(d+"T12:00:00Z").toLocaleDateString(L("hi-IN","en-IN"),{day:"numeric",month:"long",timeZone:"UTC"});
+  const hit=want===null?list.slice(0,1):list.filter(e=>e.date===istDay(want));
+  const late=L(" गिटहब कभी-कभी क़रीब एक घंटा देर से चलाता है।"," GitHub kabhi-kabhi karib ek ghanta der se chalata hai.");
+  const show=list.slice(0,4).map(e=>"📅 "+e.date+" · Bhag "+e.k+" · "+String(e.title||e.file||"").replace(/ #shorts$/,"")).join("\n");
+  if(hit.length){const d=day(hit[0].date),n=hit.map(e=>e.k).join(L(" और "," aur "));
+    return {text:L("सर, "+d+" शाम 7 बजे भाग "+n+" यूट्यूब पर डालने का समय तय है।","Sir, "+d+" shaam 7 baje Bhag "+n+" YouTube par daalne ka samay tay hai.")+late,show}}
+  const next=list[0];
+  const no=want===null?L("सर, अभी कोई वीडियो अपलोड के लिए लाइन में नहीं है।","Sir, abhi koi video upload ke liye line mein nahi hai.")
+    :L("सर, "+(want?"कल":"आज")+" के लिए कोई वीडियो लाइन में नहीं दिख रहा।","Sir, "+(want?"kal":"aaj")+" ke liye koi video line mein nahi dikh raha.");
+  return {text:no+(next?L(" अगला भाग "+next.k+", "+day(next.date)+" शाम 7 बजे तय है।"," Agla Bhag "+next.k+", "+day(next.date)+" shaam 7 baje tay hai."):""),show};
+}
 let cache=null,job=null;
 // taaza haal (25 second tak purana) turant; warna GitHub se naya
 function runsNow(){
@@ -101,6 +126,7 @@ async function status(text){
   const hi=/[\u0900-\u097F]/.test(text),L=(a,b)=>hi?a:b;
   if(!gt())return {text:L("सर, पहले सेटिंग में टोकन डालना पड़ेगा।","Sir, pehle setup mein token daalna padega.")};
   try{
+    if(isWhen(text))return await whenUpload(text,L);
     if(/jawab|reply|जवाब|रिप्लाई/i.test(text)){
       await origLoad();
       const m=chatMsgs[chatMsgs.length-1];
