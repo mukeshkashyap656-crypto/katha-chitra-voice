@@ -169,7 +169,7 @@ body{padding-bottom:110px}
 </details>
 </section>
 <script>
-const VER="2026-11-24-l";
+const VER="2026-11-25-jarvis";
 const OWNER="mukeshkashyap656-crypto",REPO="katha-chitra-videos";
 const $=id=>document.getElementById(id);
 const st=t=>$("st").textContent=t;
@@ -671,4 +671,5 @@ if(gt())idb("readwrite",q=>q.put(gt(),"tok"));
 else idb("readonly",q=>q.get("tok")).then(v=>{if(v&&!gt()){try{localStorage.setItem("kc_tok",v)}catch(e){return}toast("🔑 Token wapas mil gaya, dobara nahi daalna");if(location.hash==="#s6")location.hash="";route();loadAll()}});
 route();if(!gt()&&!location.hash)location.hash="s6";
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
-</script></body></html>
+</script>
+<script src="jarvis.js?v=20261125"></script></body></html>
