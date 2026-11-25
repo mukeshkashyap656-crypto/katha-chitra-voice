@@ -67,9 +67,69 @@ async function system(){
 }
 // "kaam" saaf ho to AI se poochhe bina GitHub AI ko
 const isCommand=t=>/^\s*@ai\b|JAANCH-VIDEO|^\s*(?:jarvis |जार्विस )?(?:yaad rakh|याद रख)/i.test(t);
+// haal-chaal wale sawal: page khud GitHub se padh kar turant batata hai (AI ki zarurat nahi)
+const ASK_STATUS=/^(?:(?:jarvis|जार्विस)[\s,]+)?(?:(?:github|गिटहब|git hub)\s*(?:(?:ka|का|par|पर|mein|में)\s*)?)?(?:(?:abhi|अभी|aaj|आज)\s*)?(?:(?:kya (?:chal|ho) raha hai|क्या (?:चल|हो) रहा है)|(?:(?:mera |मेरा )?(?:kaam|काम|video|वीडियो)\s*)?(?:(?:ka |का )?(?:status|स्टेटस|haal|हाल)(?:\s*(?:kya hai|क्या है|batao|बताओ))?|(?:kahan tak (?:pahuncha|hua)|कहाँ तक (?:पहुँचा|पहुंचा|हुआ))(?:\s*(?:hai|है))?|(?:ho ?gaya|hua|bana|ban gaya|हो गया|हुआ|बना|बन गया)\s*(?:kya|क्या)(?:\s*(?:nahi|नहीं))?)|(?:koi |कोई )?(?:gadbad|dikkat|error|गड़बड़|दिक्कत|एरर)(?:\s*(?:hai|aayi|है|आई))?(?:\s*(?:kya|क्या))?|(?:jawab|reply|जवाब|रिप्लाई)\s*(?:aaya|आया)(?:\s*(?:kya|क्या))?(?:\s*(?:nahi|नहीं))?)[\s?।.!]*$/i;
+const isStatus=t=>ASK_STATUS.test(String(t).trim());
+let cache=null,job=null;
+// taaza haal (25 second tak purana) turant; warna GitHub se naya
+function runsNow(){
+  const tok=gt();
+  if(cache&&cache.tok===tok&&Date.now()-cache.at<25000)return Promise.resolve(cache.runs);
+  return job||(job=(async()=>{
+    const r=await api("/actions/runs?per_page=30");
+    if(!r.ok){const e=new Error("HTTP "+r.status);e.status=r.status;throw e}
+    const runs=(await r.json()).workflow_runs||[];cache={tok,at:Date.now(),runs};return runs;
+  })().finally(()=>{job=null}));
+}
+// page saamne ho to haal pehle se laakar rakho, taaki poochhte hi jawab mile
+const warm=()=>{if(gt()&&!document.hidden)runsNow().catch(()=>{})};
+warm();setInterval(warm,20000);document.addEventListener("visibilitychange",warm);
+// har kaam ki sirf sabse nayi haalat
+function summary(runs){
+  const seen=new Set(),running=[],failed=[];let last=null;
+  for(const x of runs){
+    if(x.status!=="completed"){running.push(x);continue}
+    if(x.conclusion!=="success"&&x.conclusion!=="failure"&&x.conclusion!=="timed_out")continue;
+    if(!last)last=x;
+    if(seen.has(x.workflow_id))continue;seen.add(x.workflow_id);
+    if(x.conclusion!=="success")failed.push(x);
+  }
+  return {running,failed,last};
+}
+const mins=d=>Math.max(0,Math.round((Date.now()-new Date(d))/60000));
+async function status(text){
+  const hi=/[\u0900-\u097F]/.test(text),L=(a,b)=>hi?a:b;
+  if(!gt())return {text:L("सर, पहले सेटिंग में टोकन डालना पड़ेगा।","Sir, pehle setup mein token daalna padega.")};
+  try{
+    if(/jawab|reply|जवाब|रिप्लाई/i.test(text)){
+      await origLoad();
+      const m=chatMsgs[chatMsgs.length-1];
+      if(m&&m.who==="ai")return {text:L("जी सर, जवाब आ गया है। ","Haan sir, jawab aa gaya hai. ")+m.text.replace(/\s+/g," ").slice(0,300)};
+      return {text:L("सर, आख़िरी बात का जवाब अभी नहीं आया है।","Sir, aakhri baat ka jawab abhi nahi aaya hai.")};
+    }
+    const s=summary(await runsNow()),out=[],show=[];
+    if(s.running.length){out.push(L("सर, अभी "+s.running.length+" काम चल रहे हैं या लाइन में हैं।","Sir, abhi "+s.running.length+" kaam chal rahe hain ya line mein hain."));s.running.slice(0,4).forEach(x=>show.push("⏳ "+x.name+" ("+mins(x.created_at)+" min)"))}
+    else out.push(L("सर, अभी कोई काम नहीं चल रहा।","Sir, abhi koi kaam nahi chal raha."));
+    if(s.last){const ok=s.last.conclusion==="success",m=mins(s.last.updated_at),ago=m<60?L(m+" मिनट",m+" minute"):L(Math.round(m/60)+" घंटे",Math.round(m/60)+" ghante");
+      out.push(L("आख़िरी काम "+ago+" पहले "+(ok?"ठीक से पूरा हुआ।":"अटक गया था।"),"Aakhri kaam "+ago+" pehle "+(ok?"theek se poora hua.":"atak gaya tha.")));show.push((ok?"✅ ":"❌ ")+s.last.name)}
+    if(s.failed.length){out.push(L(s.failed.length+" काम में गड़बड़ दिख रही है, नाम चैट में लिख दिए हैं।",s.failed.length+" kaam mein gadbad dikh rahi hai, naam neeche likhe hain."));s.failed.slice(0,4).forEach(x=>show.push("❌ "+x.name))}
+    else out.push(L("हाल के कामों में कोई गड़बड़ नहीं दिखी।","Haal ke kaamon mein koi gadbad nahi dikhi."));
+    return {text:out.join(" "),show:[...new Set(show)].join("\n")};
+  }catch(e){
+    return {text:e.status===401||e.status===403||e.status===404?L("सर, टोकन को ये जानकारी पढ़ने की इजाज़त नहीं है।","Sir, token ko ye jaankari padhne ki ijazat nahi hai. (Actions: Read)"):L("सर, अभी गिटहब से जानकारी नहीं आ पाई।","Sir, abhi GitHub se jaankari nahi aa payi.")};
+  }
+}
+const full=r=>r.text+(r.show?"\n"+r.show:"");
+// tez AI ko bhi GitHub ka abhi ka haal pata ho
+async function ghNow(){
+  if(!gt())return "";
+  try{const runs=await Promise.race([runsNow(),new Promise(r=>setTimeout(()=>r([]),1500))]);
+    return runs.slice(0,8).map(x=>x.name+" | "+(x.status==="completed"?x.conclusion:x.status)+" | "+mins(x.updated_at)+" min pehle").join("\n")}catch(e){return ""}
+}
 async function ask(text){
   if(isCommand(text))return {work:true};
-  const sys=await system(),msgs=hist.slice(-10).map(m=>({who:m.who,text:m.text})).concat({who:"me",text});
+  const [base,now]=await Promise.all([system(),ghNow()]);
+  const sys=base+(now?"\nGitHub par kaamon ka abhi ka haal (naam | haalat | kab):\n"+now:""),msgs=hist.slice(-10).map(m=>({who:m.who,text:m.text})).concat({who:"me",text});
   while(msgs.length&&msgs[0].who!=="me")msgs.shift();
   let why="";
   for(const key of keys()){
@@ -114,6 +174,10 @@ function sayOut(t){if(window.kcVoice){window.kcVoice.speak(t.replace(/[#*_`]/g,"
 let busy=false;
 $("send").onclick=async function(){
   const box=$("txt"),t=box.value.trim();
+  if(t&&isStatus(t)&&gt()){
+    if(busy)return;busy=true;killMic();st("⚡ GitHub se dekh raha hoon…");
+    let r;try{r=await status(t)}finally{busy=false}
+    if(box.value.trim()===t){box.value="";box.style.height=""}show("me",t);show("ai","⚡ "+full(r));st("Jawab aa gaya ✅");if(spoke){spoke=false;sayOut(r.text)}return}
   if(!t||!keys().length||isCommand(t))return github.apply(this,arguments);
   if(busy)return;
   busy=true;$("send").disabled=true;killMic();st("⚡ Soch raha hoon…");
@@ -140,5 +204,5 @@ $("qkdel").onclick=()=>{put(K,"");$("qkin").value="";$("qkmsg").textContent="Cha
 label();renderChat();
 // page khulte hi taiyari, taaki pehla jawab bhi jaldi aaye
 if(keys().length){loadYaad();const k=keys()[0];if(!goodAll()[kind(k)])models(kind(k),k).catch(()=>{})}
-window.kcQuick={ready:()=>keys().length>0,ask,show,github:()=>github.call($("send"))};
+window.kcQuick={ready:()=>keys().length>0,ask,show,isStatus,status,full,github:()=>github.call($("send"))};
 })();

@@ -373,6 +373,12 @@ async function handle(cmd){
   if(/kitne baje|time kya|कितने बजे|टाइम क्या|समय क्या/.test(c)){await speak(timeLine(new Date()));listen();return}
   const pages=[[/video|वीडियो/,"s3","वीडियो"],[/youtube|यूट्यूब/,"s4","यूट्यूब"],[/blog|ब्लॉग/,"s7","ब्लॉग"]];
   for(const [re,h,n] of pages)if(re.test(c)&&/dikhao|kholo|दिखाओ|खोलो/.test(c)&&c.split(/\s+/).length<=4){location.hash=h;close();await speak("लीजिए सर, "+n+" वाला पेज खुल गया।");listen();return}
+  if(window.kcQuick&&window.kcQuick.isStatus(cmd)){
+    say("⚡ GitHub se dekh raha hoon…");
+    const run=gen,r=await window.kcQuick.status(cmd);
+    if(!active||run!==gen)return;
+    location.hash="s1";window.kcQuick.show("me",cmd);window.kcQuick.show("ai","⚡ "+window.kcQuick.full(r));say(r.text);
+    await speak(short(r.text));if(active)listen();return}
   if(window.kcQuick&&window.kcQuick.ready()){
     say("⚡ Soch raha hoon…");
     let r;try{r=await window.kcQuick.ask(cmd)}catch(e){r={fail:e.message}}
