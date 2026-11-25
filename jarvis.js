@@ -121,8 +121,14 @@ function speak(text){
   const f=FIXED[text];
   return f?playFile(f,Math.max(12000,text.length*200)).then(ok=>ok||speakAny(text)):speakAny(text);
 }
-// tay jawab: record ki hui awaaz
-const FIXED={"जी, बोलिए": "jv-boliye.mp3", "ठीक है, मैं रुक रहा हूँ": "jv-rukta.mp3", "टेक्स्ट बॉक्स में पहले से कुछ लिखा है। पहले उसे भेजिए या मिटाइए": "jv-pehle.mp3", "यह ज़रूरी काम है। पढ़कर भेजो बटन दबाइए": "jv-zaroori.mp3", "पहले सेटअप में टोकन डालिए": "jv-token.mp3", "बात भेजी नहीं जा सकी": "jv-nahi.mp3", "भेज दिया। जवाब आते ही सुनाऊँगा": "jv-bheja.mp3", "जवाब अभी तक नहीं आया। चैट में देख लीजिए": "jv-intezaar.mp3", "जार्विस चालू है": "jv-chalu.mp3", "हेलो सर, आज क्या करना है?": "jv-hello.mp3"};
+// tay jawab: record ki hui awaaz. Har baat ke kuch alag tareeke, taaki har baar ek jaisa na lage.
+const BOL={"boliye": ["जी सर, बोलिए।", "हाँ सर, बताइए।", "जी, सुन रहा हूँ।"], "rukta": ["ठीक है सर, मैं चुप हो जाता हूँ।", "अच्छा सर, ज़रूरत हो तो बुला लीजिएगा।"], "pehle": ["सर, डिब्बे में पहले से कुछ लिखा है। उसे भेज दीजिए, या मिटा दीजिए।"], "zaroori": ["सर, ये ज़रा ज़रूरी काम है। एक बार पढ़ लीजिए, फिर भेजो वाला बटन दबा दीजिए।"], "token": ["सर, पहले सेटिंग में टोकन डालना पड़ेगा।"], "nahi": ["अरे, बात जा नहीं पाई सर। एक बार फिर कोशिश करते हैं।", "सर, ये बात भेज नहीं पाया। ज़रा दोबारा देखिए।"], "bheja": ["हो गया सर, भेज दिया। जवाब आते ही बताता हूँ।", "ठीक है सर, मैंने आगे भेज दिया है। जवाब आए तो सुनाता हूँ।", "जी सर, काम दे दिया है। थोड़ा इंतज़ार करते हैं।"], "intezaar": ["सर, अभी तक जवाब नहीं आया। आप एक बार चैट देख लीजिए।"], "chalu": ["जी सर, मैं आ गया।", "हाँ सर, मैं यहीं हूँ।"], "hello": ["हाँ सर, बताइए, आज क्या करना है?", "नमस्ते सर! कहिए, क्या काम है?"]};
+const SALAAM={"subah": ["गुड मॉर्निंग सर! बताइए, आज क्या करना है?", "नमस्ते सर, सुप्रभात! कहिए, कहाँ से शुरू करें?"], "dopahar": ["नमस्ते सर! कहिए, अब क्या करना है?", "गुड आफ़्टरनून सर! बताइए, क्या काम है?"], "shaam": ["गुड ईवनिंग सर! बताइए, क्या करना है?", "नमस्ते सर! कैसा रहा दिन? बताइए, अब क्या करें?"]};
+const FIXED={};
+for(const k in BOL)BOL[k].forEach((t,i)=>{FIXED[t]="jv-"+k+"-"+(i+1)+"-v2.mp3"});
+const lastPick={};
+function pickNo(k,n){let i=Math.floor(Math.random()*n);if(n>1&&i===lastPick[k])i=(i+1)%n;lastPick[k]=i;return i}
+const line=k=>BOL[k][pickNo(k,BOL[k].length)];
 // badalte jawab: phone ke andar usi awaaz mein; na ho paaye tabhi phone ki awaaz
 const VON="kc_voice_full";
 const fullOn=()=>{try{return localStorage.getItem(VON)==="1"}catch(e){return false}};
@@ -172,20 +178,17 @@ function speakPhone(text){
     speaking=true;J("jvbox").classList.add("talk");let done=false,started=false,tm=null;
     const end=ok=>{if(done)return;done=true;clearTimeout(tm);speaking=false;J("jvbox").classList.remove("talk");res(ok)};
     const touched=()=>!navigator.userActivation||navigator.userActivation.hasBeenActive;
-    try{S.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="hi-IN";const v=pickVoice();if(v)u.voice=v;u.pitch=0.8;u.rate=0.98;u.onstart=()=>{started=true};u.onend=()=>end(true);u.onerror=()=>end(false);S.speak(u)}catch(e){end(false)}
+    try{S.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="hi-IN";const v=pickVoice();if(v)u.voice=v;u.pitch=1;u.rate=1;u.onstart=()=>{started=true};u.onend=()=>end(true);u.onerror=()=>end(false);S.speak(u)}catch(e){end(false)}
     tm=setTimeout(()=>end(started||touched()),3000+text.length*130);
   });
 }
-function greetText(){
-  const h=new Date().getHours();
-  return (h<12?"गुड मॉर्निंग सर।":h<17?"गुड आफ्टरनून सर।":"गुड ईवनिंग सर।")+" जार्विस हाज़िर है। आज क्या करना है?";
-}
+const dayPart=()=>{const h=new Date().getHours();return h<12?"subah":h<17?"dopahar":"shaam"};
+let hello={part:"",i:0};
+function newHello(){const part=dayPart();hello={part,i:pickNo(part,SALAAM[part].length)}}
+const greetText=()=>SALAAM[hello.part][hello.i];
 // record ki hui salaam: home screen wale app mein bina chhue baj sakti hai (phone wali bolne ki suvidha nahi)
 let clipStop=null,hiddenAt=0;
-function playClip(){
-  const h=new Date().getHours();
-  return playFile("salaam-"+(h<12?"subah":h<17?"dopahar":"shaam")+".mp3",12000);
-}
+function playClip(){return playFile("salaam-"+hello.part+"-"+(hello.i+1)+"-v2.mp3",12000)}
 function playFile(src,limit){
   return new Promise(res=>{
     let done=false,tm=null,a=null;
@@ -200,10 +203,10 @@ function playFile(src,limit){
     }catch(e){end(false)}
   });
 }
-const sayHello=async()=>(await playClip())||(await speak(greetText()));
+const sayHello=async()=>{newHello();J("jvheard").textContent=greetText();return (await playClip())||(await speak(greetText()))};
 // app khulte hi salaam; browser roke to pehli chhuan par bolo
 async function greet(){
-  open();J("jvheard").textContent=greetText();
+  open();
   const ok=await sayHello();
   if(!ok)document.addEventListener("pointerdown",e=>{if(!speaking&&!enrolling&&!cmdRec&&!(e.target.closest&&e.target.closest("button,select,summary")))sayHello()},{once:true,capture:true});
 }
@@ -275,7 +278,7 @@ async function listen(){
 }
 async function woke(){
   gen++;micOff();const my=gen;J("jvbox").style.display="flex";J("jvheard").textContent="";say("Ji, boliye…");
-  await speak("जी, बोलिए");
+  await speak(line("boliye"));
   if(!active||my!==gen)return;
   const R=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!R){say("Is browser mein bolkar likhna nahi chalta. Chrome use karo.");stop();return}
@@ -294,13 +297,13 @@ let toAI="";
 function memory(cmd){
   const m=cmd.match(/^(?:jarvis |जार्विस )?(?:yaad rakh(?:o|na)|याद रख(?:ो|ना))(?: ki| कि)?\s+(.+)$/i);
   if(m){
-    if(SECRET.test(m[1]))return "टोकन, पासवर्ड या लंबे नंबर मैं याद नहीं रखता";
+    if(SECRET.test(m[1]))return "सर, पासवर्ड, टोकन या लंबे नंबर मैं याद नहीं रखता।";
     const v=m[1].slice(0,200),a=mems().filter(x=>x!==v);a.push(v);
-    try{localStorage.setItem(MKEY,JSON.stringify(a.slice(-100)))}catch(e){return "याद सेव नहीं हुई"}
-    toAI=v;return "ठीक है सर, याद रख लिया";
+    try{localStorage.setItem(MKEY,JSON.stringify(a.slice(-100)))}catch(e){return "माफ़ कीजिए सर, ये बात सेव नहीं हो पाई।"}
+    toAI=v;return "ठीक है सर, ये बात मैं याद रखूँगा।";
   }
   if(/kya yaad hai|kya kya yaad|क्या याद है|क्या क्या याद|क्या-क्या याद/i.test(cmd)){
-    const a=mems();return a.length?"मुझे यह याद है: "+a.slice(-8).join("। "):"अभी कुछ याद नहीं है";
+    const a=mems();return a.length?"जी सर, मुझे ये याद है। "+a.slice(-8).join("। "):"अभी तो मुझे कुछ याद नहीं है सर।";
   }
   return null;
 }
@@ -316,49 +319,58 @@ async function handle(cmd){
     const v=toAI;toAI="";const tb=document.getElementById("txt");
     if(v&&gt()&&!tb.value.trim()){location.hash="s1";tb.value="याद रखो "+v;try{await sendGH()}catch(e){}if(tb.value.trim())tb.value=""}
     await speak(mem);listen();return}
-  if(/^(jarvis |जार्विस )?(ruko|chup|so jao|band ho jao|रुको|चुप|सो जाओ|बंद हो जाओ)\s*(jarvis|जार्विस)?$/.test(c)){await speak("ठीक है, मैं रुक रहा हूँ");stop();return}
-  if(/kitne baje|time kya|कितने बजे|टाइम क्या|समय क्या/.test(c)){await speak("अभी "+new Date().toLocaleTimeString("hi-IN",{hour:"numeric",minute:"2-digit"})+" हुए हैं");listen();return}
+  if(/^(jarvis |जार्विस )?(ruko|chup|so jao|band ho jao|रुको|चुप|सो जाओ|बंद हो जाओ)\s*(jarvis|जार्विस)?$/.test(c)){await speak(line("rukta"));stop();return}
+  if(/kitne baje|time kya|कितने बजे|टाइम क्या|समय क्या/.test(c)){await speak(timeLine(new Date()));listen();return}
   const pages=[[/video|वीडियो/,"s3","वीडियो"],[/youtube|यूट्यूब/,"s4","यूट्यूब"],[/blog|ब्लॉग/,"s7","ब्लॉग"]];
-  for(const [re,h,n] of pages)if(re.test(c)&&/dikhao|kholo|दिखाओ|खोलो/.test(c)&&c.split(/\s+/).length<=4){location.hash=h;close();await speak(n+" खोल दिया");listen();return}
+  for(const [re,h,n] of pages)if(re.test(c)&&/dikhao|kholo|दिखाओ|खोलो/.test(c)&&c.split(/\s+/).length<=4){location.hash=h;close();await speak("लीजिए सर, "+n+" वाला पेज खुल गया।");listen();return}
   if(window.kcQuick&&window.kcQuick.ready()){
     say("⚡ Soch raha hoon…");
     let r;try{r=await window.kcQuick.ask(cmd)}catch(e){r={fail:e.message}}
     if(!active)return;
-    if(r.text){location.hash="s1";window.kcQuick.show("me",cmd);window.kcQuick.show("ai","⚡ "+r.text);say(r.text);let t=plain(r.text);if(t.length>350)t=t.slice(0,350)+"… पूरा जवाब चैट में है";await speak(t);if(active)listen();return}
+    if(r.text){location.hash="s1";window.kcQuick.show("me",cmd);window.kcQuick.show("ai","⚡ "+r.text);say(r.text);await speak(short(r.text));if(active)listen();return}
   }
   location.hash="s1";
   const box=document.getElementById("txt");
-  if(box.value.trim()){close();await speak("टेक्स्ट बॉक्स में पहले से कुछ लिखा है। पहले उसे भेजिए या मिटाइए");listen();return}
+  if(box.value.trim()){close();await speak(line("pehle"));listen();return}
   box.value=cmd;
-  if(RISKY.test(c)){close();await speak("यह ज़रूरी काम है। पढ़कर भेजो बटन दबाइए");listen();return}
-  if(!gt()){await speak("पहले सेटअप में टोकन डालिए");listen();return}
+  if(RISKY.test(c)){close();await speak(line("zaroori"));listen();return}
+  if(!gt()){await speak(line("token"));listen();return}
   say("AI ko bhej raha hoon…");
   const before=chatN;
   const old=new Set(chatN?chatMsgs.filter(m=>m.who==="ai").map(m=>m.id):[]);
   await sendGH();
-  if(box.value.trim()){await speak("बात भेजी नहीं जा सकी");listen();return}
+  if(box.value.trim()){await speak(line("nahi"));listen();return}
   watch(chatN,old,Date.now());
-  await speak("भेज दिया। जवाब आते ही सुनाऊँगा");listen();
+  await speak(line("bheja"));listen();
 }
 const sendGH=()=>window.kcQuick?window.kcQuick.github():document.getElementById("send").onclick();
-function plain(t){return t.replace(/```[\s\S]*?```/g," ").replace(/https?:\/\/\S+/g," लिंक ").replace(/[#*_`>|]/g," ").replace(/\s+/g," ").trim()}
+function timeLine(d){
+  const h=d.getHours(),m=d.getMinutes(),pehar=h<4?"रात के":h<12?"सुबह के":h<16?"दोपहर के":h<20?"शाम के":"रात के";
+  return "सर, अभी "+pehar+" "+(h%12||12)+" बज"+(m?"कर "+m+" मिनट हुए हैं।":" रहे हैं।");
+}
+// lamba jawab beech shabd mein na kate: poore vakya tak bolo
+function short(text){
+  const t=plain(text);if(t.length<=350)return t;
+  const c=t.slice(0,350),end=Math.max(...["।","?","!",". "].map(x=>c.lastIndexOf(x)));
+  return (end>80?c.slice(0,end+1):c.slice(0,c.lastIndexOf(" ")>0?c.lastIndexOf(" "):350)+"…")+" बाक़ी बात मैंने चैट में लिख दी है सर।";
+}
+function plain(t){t=t.replace(/[\p{Extended_Pictographic}\uFE0F]/gu," ");return t.replace(/```[\s\S]*?```/g," ").replace(/https?:\/\/\S+/g," लिंक ").replace(/[#*_`>|]/g," ").replace(/\s+/g," ").trim()}
 function watch(n,old,t0){
   clearTimeout(watchT);
   watchT=setTimeout(async()=>{
     if(!active||chatN!==n)return;
-    if(Date.now()-t0>15*60000){speak("जवाब अभी तक नहीं आया। चैट में देख लीजिए");return}
+    if(Date.now()-t0>15*60000){speak(line("intezaar"));return}
     try{await loadChat()}catch(e){}
     const m=chatMsgs.filter(m=>m.who==="ai"&&!old.has(m.id)).pop();
     if(!m||speaking||cmdRec){watch(n,old,t0);return}
-    let t=plain(m.text);if(t.length>350)t=t.slice(0,350)+"… पूरा जवाब चैट में है";
-    await speak(t);
+    await speak(short(m.text));
   },8000);
 }
 async function start(quiet){
   if(!profile){say("Pehle apni awaaz sikhao.");return}
   enrolling=null;active=true;ui();
   try{lock=await navigator.wakeLock.request("screen")}catch(e){}
-  if(quiet!==true)await speak("जार्विस चालू है");
+  if(quiet!==true)await speak(line("chalu"));
   if(active&&!cmdRec)listen();
 }
 function stop(){
@@ -408,8 +420,8 @@ if(micBtn&&micBtn.onclick){
   micBtn.onclick=async function(e){
     if(on||!SR)return orig.call(micBtn,e);
     if(greeting)return;
-    greeting=true;st("Jarvis: Hello sir, aaj kya karna hai?");
-    await speak("हेलो सर, आज क्या करना है?");
+    greeting=true;const t=line("hello");st("Jarvis: "+t);
+    await speak(t);
     greeting=false;
     if(location.hash==="#s1"&&!document.hidden&&!on&&!active)orig.call(micBtn,e);
   };
@@ -425,8 +437,8 @@ document.addEventListener("visibilitychange",async()=>{
   }
 });
 J("jvfull").onclick=async()=>{
-  if(ttsReady){speak("जी सर, अब हर जवाब इसी आवाज़ में मिलेगा।");return}
-  if(await loadVoice()){try{localStorage.setItem(VON,"1")}catch(e){}speak("जी सर, अब हर जवाब इसी आवाज़ में मिलेगा।")}
+  if(ttsReady){speak("जी सर, अब से मैं हर बात इसी आवाज़ में करूँगा।");return}
+  if(await loadVoice()){try{localStorage.setItem(VON,"1")}catch(e){}speak("जी सर, अब से मैं हर बात इसी आवाज़ में करूँगा।")}
 };
 if(fullOn())loadVoice();
 window.kcVoice={speak,hush};
@@ -434,7 +446,7 @@ J("jvvoice").onclick=()=>{
   const l=hiVoices();if(!l.length){say("Is phone mein Hindi ki doosri awaaz nahi mili.");return}
   const cur=pickVoice(),n=l[(l.findIndex(v=>v.voiceURI===(cur&&cur.voiceURI))+1)%l.length];
   try{localStorage.setItem(VKEY,n.voiceURI)}catch(e){}
-  say("Awaaz "+(l.indexOf(n)+1)+"/"+l.length);speak("हेलो सर, क्या यह आवाज़ ठीक है?");
+  say("Awaaz "+(l.indexOf(n)+1)+"/"+l.length);speak("सर, ये आवाज़ कैसी लग रही है?");
 };
 try{window.speechSynthesis.getVoices()}catch(e){}
 ui();
