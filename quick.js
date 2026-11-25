@@ -94,9 +94,9 @@ loadChat=async function(){await origLoad();if(!gt()&&hist.length)renderChat()};
 const github=$("send").onclick;
 // mic se poochha ho to jawab bolkar bhi sunao
 let spoke=false;
-$("mic").addEventListener("click",()=>{spoke=true;try{window.speechSynthesis.cancel()}catch(e){}},true);
+$("mic").addEventListener("click",()=>{spoke=true;if(window.kcVoice)window.kcVoice.hush();try{window.speechSynthesis.cancel()}catch(e){}},true);
 $("txt").addEventListener("input",()=>{spoke=false});
-function sayOut(t){try{const S=window.speechSynthesis,u=new SpeechSynthesisUtterance(t.replace(/[#*_`]/g," ").slice(0,350));u.lang="hi-IN";u.pitch=0.8;S.cancel();S.speak(u)}catch(e){}}
+function sayOut(t){if(window.kcVoice){window.kcVoice.speak(t.replace(/[#*_`]/g," ").slice(0,350));return}try{const S=window.speechSynthesis,u=new SpeechSynthesisUtterance(t.replace(/[#*_`]/g," ").slice(0,350));u.lang="hi-IN";u.pitch=0.8;S.cancel();S.speak(u)}catch(e){}}
 let busy=false;
 $("send").onclick=async function(){
   const box=$("txt"),t=box.value.trim();

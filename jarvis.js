@@ -104,7 +104,7 @@ css.textContent=`#jvbtn{position:fixed;left:18px;bottom:18px;z-index:40;width:64
 #jvset{width:100%}#jvset summary{text-align:center;padding:8px;color:#7fe9ff}#jvset>*:not(summary){margin-top:9px}
 #jvsay,#jvnote{text-align:center;line-height:1.5}#jvsay{min-height:24px;font-size:17px}#jvnote{font-size:12.5px;opacity:.7}#jvheard{font-size:14px;color:#ffe082;min-height:20px;text-align:center}`;
 document.head.appendChild(css);
-document.body.insertAdjacentHTML("beforeend",'<button id="jvbtn" type="button" aria-label="Jarvis kholo" title="Jarvis"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="r" cx="32" cy="32" r="28" stroke-width="2.5" stroke-dasharray="30 8 14 8 44 8 24 8"/><circle class="r b" cx="32" cy="32" r="21" stroke-width="5" stroke-dasharray="2 3.5" opacity=".75"/><circle cx="32" cy="32" r="13" stroke-width="1.5"/><circle cx="32" cy="32" r="7" fill="#d9fbff" stroke="none"/></svg></button><div id="jvbox"><div id="jvname">JARVIS</div><div id="jvorb"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="r" cx="100" cy="100" r="94" stroke-width="1.5" stroke-dasharray="2 6"/><circle class="r b" cx="100" cy="100" r="82" stroke-width="5" stroke-dasharray="90 28 40 28 150 28 60 92" opacity=".85"/><circle class="r c" cx="100" cy="100" r="66" stroke-width="2" stroke-dasharray="120 60 30 60"/><circle class="r" cx="100" cy="100" r="52" stroke-width="9" stroke-dasharray="3 7.9" opacity=".6"/><circle class="r b" cx="100" cy="100" r="38" stroke-width="1.5" stroke-dasharray="50 14"/><g class="k"><circle cx="100" cy="100" r="24" fill="#38e1ff" opacity=".3"/><circle cx="100" cy="100" r="13" fill="#d8fbff"/></g></svg></div><div id="jvbars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div id="jvsay"></div><div id="jvheard"></div><button id="jvgo"></button><button id="jvteach"></button><details id="jvset"><summary>⚙ Setting</summary><button id="jvvoice">🔈 Jarvis ki awaaz badlo</button><select id="jvlvl"><option value="dheela">Pehchan: dheeli (aasani se sune)</option><option value="beech">Pehchan: beech ki</option><option value="sakht">Pehchan: sakht (sirf saaf meri awaaz)</option></select><button id="jvmem">🧠 Yaad ki baatein mitao (do baar dabao)</button><button id="jvdel">🗑 Meri awaaz mitao</button></details><button id="jvclose">◀ Wapas</button><div id="jvnote">Jarvis tabhi sunta hai jab ye page khula ho aur screen chalu ho. Ek baar awaaz sikhane aur mic ko hamesha ki ijazat dene ke baad, app khulte hi ye apne aap chalu hota hai. “Yaad rakho” wali baat GitHub AI ko bhi jaati hai, jo sabko dikh sakti hai, isliye niji baat mat bolna. Awaaz ka namoona sirf isi phone mein rehta hai. Uske baad ki baat ko likhne ke liye Chrome awaaz Google ko bhejta hai. Ye pehchan taala nahi hai: milti-julti awaaz ya recording dhokha de sakti hai.</div></div>');
+document.body.insertAdjacentHTML("beforeend",'<button id="jvbtn" type="button" aria-label="Jarvis kholo" title="Jarvis"><svg viewBox="0 0 64 64" aria-hidden="true"><circle class="r" cx="32" cy="32" r="28" stroke-width="2.5" stroke-dasharray="30 8 14 8 44 8 24 8"/><circle class="r b" cx="32" cy="32" r="21" stroke-width="5" stroke-dasharray="2 3.5" opacity=".75"/><circle cx="32" cy="32" r="13" stroke-width="1.5"/><circle cx="32" cy="32" r="7" fill="#d9fbff" stroke="none"/></svg></button><div id="jvbox"><div id="jvname">JARVIS</div><div id="jvorb"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="r" cx="100" cy="100" r="94" stroke-width="1.5" stroke-dasharray="2 6"/><circle class="r b" cx="100" cy="100" r="82" stroke-width="5" stroke-dasharray="90 28 40 28 150 28 60 92" opacity=".85"/><circle class="r c" cx="100" cy="100" r="66" stroke-width="2" stroke-dasharray="120 60 30 60"/><circle class="r" cx="100" cy="100" r="52" stroke-width="9" stroke-dasharray="3 7.9" opacity=".6"/><circle class="r b" cx="100" cy="100" r="38" stroke-width="1.5" stroke-dasharray="50 14"/><g class="k"><circle cx="100" cy="100" r="24" fill="#38e1ff" opacity=".3"/><circle cx="100" cy="100" r="13" fill="#d8fbff"/></g></svg></div><div id="jvbars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div id="jvsay"></div><div id="jvheard"></div><button id="jvgo"></button><button id="jvteach"></button><button id="jvfull" type="button">🔊 Har jawab isi awaaz mein (ek baar, 93 MB)</button><details id="jvset"><summary>⚙ Setting</summary><button id="jvvoice">🔈 Jarvis ki awaaz badlo</button><select id="jvlvl"><option value="dheela">Pehchan: dheeli (aasani se sune)</option><option value="beech">Pehchan: beech ki</option><option value="sakht">Pehchan: sakht (sirf saaf meri awaaz)</option></select><button id="jvmem">🧠 Yaad ki baatein mitao (do baar dabao)</button><button id="jvdel">🗑 Meri awaaz mitao</button></details><button id="jvclose">◀ Wapas</button><div id="jvnote">Jarvis tabhi sunta hai jab ye page khula ho aur screen chalu ho. Ek baar awaaz sikhane aur mic ko hamesha ki ijazat dene ke baad, app khulte hi ye apne aap chalu hota hai. “Yaad rakho” wali baat GitHub AI ko bhi jaati hai, jo sabko dikh sakti hai, isliye niji baat mat bolna. Awaaz ka namoona sirf isi phone mein rehta hai. Uske baad ki baat ko likhne ke liye Chrome awaaz Google ko bhejta hai. Ye pehchan taala nahi hai: milti-julti awaaz ya recording dhokha de sakti hai.</div></div>');
 const J=id=>document.getElementById(id);
 const say=t=>{J("jvsay").textContent=t};
 function ui(){
@@ -119,10 +119,53 @@ function pickVoice(){const l=hiVoices();let w="";try{w=localStorage.getItem(VKEY
 // jawab: true = bola gaya, false = browser ne bina chhuye bolne nahi diya
 function speak(text){
   const f=FIXED[text];
-  return f?playFile(f,Math.max(12000,text.length*200)).then(ok=>ok||speakPhone(text)):speakPhone(text);
+  return f?playFile(f,Math.max(12000,text.length*200)).then(ok=>ok||speakAny(text)):speakAny(text);
 }
 // tay jawab: record ki hui awaaz
 const FIXED={"जी, बोलिए": "jv-boliye.mp3", "ठीक है, मैं रुक रहा हूँ": "jv-rukta.mp3", "टेक्स्ट बॉक्स में पहले से कुछ लिखा है। पहले उसे भेजिए या मिटाइए": "jv-pehle.mp3", "यह ज़रूरी काम है। पढ़कर भेजो बटन दबाइए": "jv-zaroori.mp3", "पहले सेटअप में टोकन डालिए": "jv-token.mp3", "बात भेजी नहीं जा सकी": "jv-nahi.mp3", "भेज दिया। जवाब आते ही सुनाऊँगा": "jv-bheja.mp3", "जवाब अभी तक नहीं आया। चैट में देख लीजिए": "jv-intezaar.mp3", "जार्विस चालू है": "jv-chalu.mp3", "हेलो सर, आज क्या करना है?": "jv-hello.mp3"};
+// badalte jawab: phone ke andar usi awaaz mein; na ho paaye tabhi phone ki awaaz
+const VON="kc_voice_full";
+const fullOn=()=>{try{return localStorage.getItem(VON)==="1"}catch(e){return false}};
+let tts=null,ttsId=0,ttsReady=false,sayRun=0;const waits=new Map();
+function ttsMsg(m,limit){
+  return new Promise(res=>{
+    try{
+      if(!tts){
+        tts=new Worker("awaaz/worker.js?v=1");
+        tts.onmessage=e=>{const d=e.data;if(d.progress!==undefined){if(!ttsReady)label("⬇ Awaaz aa rahi hai… "+d.progress+"%");return}const w=waits.get(d.id);if(w){waits.delete(d.id);w(d)}};
+        tts.onerror=()=>{waits.forEach(w=>w({ok:false,error:"worker"}));waits.clear();tts.terminate();tts=null;ttsReady=false};
+      }
+      const id=++ttsId;let tm=null;waits.set(id,d=>{clearTimeout(tm);res(d)});
+      if(limit)tm=setTimeout(()=>{waits.delete(id);res({ok:false,error:"der"})},limit);
+      tts.postMessage({id,...m});
+    }catch(e){res({ok:false,error:e.message})}
+  });
+}
+const label=t=>{const b=document.getElementById("jvfull");if(b)b.textContent=t};
+async function loadVoice(){
+  label("⬇ Awaaz aa rahi hai…");
+  const r=await ttsMsg({});ttsReady=!!r.ok;
+  label(r.ok?"✅ Har jawab isi awaaz mein":"❌ Awaaz nahi aayi. Dobara dabao");
+  return r.ok;
+}
+const pieces=t=>{const out=[];let cur="";for(const s of (t.match(/[^।.?!\n]+[।.?!]*/g)||[t])){if(cur&&(cur+s).length>140){out.push(cur);cur=""}cur+=s}if(cur.trim())out.push(cur);return out};
+async function speakAny(text){
+  if(!ttsReady||!text)return speakPhone(text);
+  const run=++sayRun,list=pieces(text);let first=true;
+  speaking=true;J("jvbox").classList.add("talk");
+  for(const part of list){
+    const r=await ttsMsg({text:part},45000);
+    if(run!==sayRun)return true;
+    if(!r.ok||!r.wav){speaking=false;J("jvbox").classList.remove("talk");return first?speakPhone(text):false}
+    const u=URL.createObjectURL(new Blob([r.wav],{type:"audio/wav"}));
+    const ok=await playFile(u,90000);URL.revokeObjectURL(u);
+    if(run!==sayRun)return true;
+    if(!ok)return false;
+    first=false;if(part!==list[list.length-1]){speaking=true;J("jvbox").classList.add("talk")}
+  }
+  return true;
+}
+const hush=()=>{sayRun++;if(clipStop)clipStop();speaking=false;J("jvbox").classList.remove("talk");try{window.speechSynthesis.cancel()}catch(e){}};
 function speakPhone(text){
   return new Promise(res=>{
     const S=window.speechSynthesis;if(!S||!text){res(false);return}
@@ -319,7 +362,7 @@ async function start(quiet){
   if(active&&!cmdRec)listen();
 }
 function stop(){
-  if(clipStop)clipStop();
+  hush();
   active=false;enrolling=null;gen++;micOff();clearTimeout(watchT);
   if(cmdRec){const r=cmdRec;cmdRec=null;try{r.abort()}catch(e){}}
   try{window.speechSynthesis&&window.speechSynthesis.cancel()}catch(e){}speaking=false;
@@ -348,7 +391,7 @@ async function boot(){
 }
 // agar browser ne apne aap nahi chalne diya to pehle tap par chalu
 const firstTap=e=>{
-  if(e.target.closest&&e.target.closest("#jvbtn,#jvgo,#jvteach,#jvset,#jvclose,#mic,#hmic,#fab,.fb"))return;
+  if(e.target.closest&&e.target.closest("#jvbtn,#jvgo,#jvteach,#jvfull,#jvset,#jvclose,#mic,#hmic,#fab,.fb"))return;
   document.removeEventListener("click",firstTap,true);
   if(canAuto())start();
 };
@@ -381,6 +424,12 @@ document.addEventListener("visibilitychange",async()=>{
     else{try{lock=await navigator.wakeLock.request("screen")}catch(e){}listen()}
   }
 });
+J("jvfull").onclick=async()=>{
+  if(ttsReady){speak("जी सर, अब हर जवाब इसी आवाज़ में मिलेगा।");return}
+  if(await loadVoice()){try{localStorage.setItem(VON,"1")}catch(e){}speak("जी सर, अब हर जवाब इसी आवाज़ में मिलेगा।")}
+};
+if(fullOn())loadVoice();
+window.kcVoice={speak,hush};
 J("jvvoice").onclick=()=>{
   const l=hiVoices();if(!l.length){say("Is phone mein Hindi ki doosri awaaz nahi mili.");return}
   const cur=pickVoice(),n=l[(l.findIndex(v=>v.voiceURI===(cur&&cur.voiceURI))+1)%l.length];
