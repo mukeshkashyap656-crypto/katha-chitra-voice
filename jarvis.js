@@ -241,12 +241,18 @@ async function handle(cmd){
   if(mem){
     say(mem);
     const v=toAI;toAI="";const tb=document.getElementById("txt");
-    if(v&&gt()&&!tb.value.trim()){location.hash="s1";tb.value="याद रखो "+v;try{await document.getElementById("send").onclick()}catch(e){}if(tb.value.trim())tb.value=""}
+    if(v&&gt()&&!tb.value.trim()){location.hash="s1";tb.value="याद रखो "+v;try{await sendGH()}catch(e){}if(tb.value.trim())tb.value=""}
     await speak(mem);listen();return}
   if(/^(jarvis |जार्विस )?(ruko|chup|so jao|band ho jao|रुको|चुप|सो जाओ|बंद हो जाओ)\s*(jarvis|जार्विस)?$/.test(c)){await speak("ठीक है, मैं रुक रहा हूँ");stop();return}
   if(/kitne baje|time kya|कितने बजे|टाइम क्या|समय क्या/.test(c)){await speak("अभी "+new Date().toLocaleTimeString("hi-IN",{hour:"numeric",minute:"2-digit"})+" हुए हैं");listen();return}
   const pages=[[/video|वीडियो/,"s3","वीडियो"],[/youtube|यूट्यूब/,"s4","यूट्यूब"],[/blog|ब्लॉग/,"s7","ब्लॉग"]];
   for(const [re,h,n] of pages)if(re.test(c)&&/dikhao|kholo|दिखाओ|खोलो/.test(c)&&c.split(/\s+/).length<=4){location.hash=h;close();await speak(n+" खोल दिया");listen();return}
+  if(window.kcQuick&&window.kcQuick.ready()){
+    say("⚡ Soch raha hoon…");
+    let r;try{r=await window.kcQuick.ask(cmd)}catch(e){r={fail:e.message}}
+    if(!active)return;
+    if(r.text){location.hash="s1";window.kcQuick.show("me",cmd);window.kcQuick.show("ai","⚡ "+r.text);say(r.text);let t=plain(r.text);if(t.length>350)t=t.slice(0,350)+"… पूरा जवाब चैट में है";await speak(t);if(active)listen();return}
+  }
   location.hash="s1";
   const box=document.getElementById("txt");
   if(box.value.trim()){close();await speak("टेक्स्ट बॉक्स में पहले से कुछ लिखा है। पहले उसे भेजिए या मिटाइए");listen();return}
@@ -256,11 +262,12 @@ async function handle(cmd){
   say("AI ko bhej raha hoon…");
   const before=chatN;
   const old=new Set(chatN?chatMsgs.filter(m=>m.who==="ai").map(m=>m.id):[]);
-  await document.getElementById("send").onclick();
+  await sendGH();
   if(box.value.trim()){await speak("बात भेजी नहीं जा सकी");listen();return}
   watch(chatN,old,Date.now());
   await speak("भेज दिया। जवाब आते ही सुनाऊँगा");listen();
 }
+const sendGH=()=>window.kcQuick?window.kcQuick.github():document.getElementById("send").onclick();
 function plain(t){return t.replace(/```[\s\S]*?```/g," ").replace(/https?:\/\/\S+/g," लिंक ").replace(/[#*_`>|]/g," ").replace(/\s+/g," ").trim()}
 function watch(n,old,t0){
   clearTimeout(watchT);
