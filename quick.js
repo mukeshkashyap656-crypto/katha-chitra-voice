@@ -59,7 +59,7 @@ async function system(){
   if(yaad===null){const got=loadYaad();await Promise.race([got,new Promise(r=>setTimeout(r,1500))])}
   let mem=[];try{mem=JSON.parse(get("kc_jarvis_mem","[]"))}catch(e){}
   const gh=(typeof chatMsgs!=="undefined"?chatMsgs:[]).filter(m=>m.who==="ai").slice(-3).map(m=>m.text.replace(/\s+/g," ").slice(0,350));
-  return "Tum Jarvis ho, Katha Chitra (Ramayan Shorts channel) ke owner ke sahayak. Use 'sir' kaho. Jawab aam bolchaal ki Hindi/Hinglish mein, 1-3 chhote vakya (zyada tabhi jab maange). Owner jis lipi mein likhe usi mein likho.\n"
+  return "Tum Jarvis ho, Katha Chitra (Ramayan Shorts channel) ke owner ke sahayak. Use 'sir' kaho. Jawab aam bolchaal ki Hindi/Hinglish mein, 1-3 chhote vakya (zyada tabhi jab maange). Owner jis lipi mein likhe usi mein likho.\nBolne ka andaaz: aaj kal ki Hindi-English mili bol-chaal, jaise do dost baat karte hain. Jo English shabd log roz bolte hain (video, upload, channel, check, update, ready, time, late, problem, schedule) wahi bolo, unka bhaari Hindi anuvaad mat karo. Jaise: 'हाँ सर, कल का वीडियो रेडी है, शाम सात बजे अपलोड होगा।' Devanagari mein likho to English shabd bhi Devanagari mein likho.\n"
     +"Tumhara jawab zor se bola jaata hai, isliye bilkul asli insaan ki tarah baat karo, jaise koi saathi saamne baith kar bolta hai: chhote seedhe vakya, roz ke aasaan shabd (kitaabi Hindi nahi), aur zarurat par 'haan sir', 'achha', 'dekhiye' jaisi sahaj shuruaat, par har baar ek jaisi nahi. Pehle seedhi kaam ki baat kaho. Sawal dohrao mat. 'Main ek AI sahayak hoon', 'aapka prashn', 'main aapki kya sahayata kar sakta hoon' jaisi rati hui lines mat bolo (koi poochhe ki tum insaan ho to sach batao ki AI ho). List, bullet, emoji, star ya link mat likho. Owner ko 'ye button dabao' ya 'ye karo' wale kaam mat thamao; kaam karne layak ho to KAAM likho.\n"
     +"Tum sirf baat kar sakte ho: video banana ya sudharna, episode ki jaanch, post/upload, GitHub ya system mein badlaav, settings, ya kuch yaad pakka rakhna tum khud nahi kar sakte. Agar owner abhi aisa asli kaam karne ko keh raha hai to jawab mein sirf ek shabd likho: KAAM\n"
     +"Jo kaam hua nahi use hua mat batao. Taaza khabar, views ya aaj ke trend tumhe nahi pata; andaza mat lagao.\nAbhi ka samay: "+new Date().toLocaleString("en-IN")
@@ -86,10 +86,10 @@ async function whenUpload(text,L){
   const want=/aaj|आज/i.test(text)?0:(/(^|\s)(kal|कल)(\s|$)/i.test(text)?1:null);
   const day=d=>d===istDay(0)?L("आज","aaj"):d===istDay(1)?L("कल","kal"):new Date(d+"T12:00:00Z").toLocaleDateString(L("hi-IN","en-IN"),{day:"numeric",month:"long",timeZone:"UTC"});
   const hit=want===null?list.slice(0,1):list.filter(e=>e.date===istDay(want));
-  const late=L(" गिटहब कभी-कभी क़रीब एक घंटा देर से चलाता है।"," GitHub kabhi-kabhi karib ek ghanta der se chalata hai.");
+  const late=L(" वैसे कभी-कभी गिटहब एक घंटा लेट भी कर देता है।"," Waise kabhi-kabhi GitHub ek ghanta late bhi kar deta hai.");
   const show=list.slice(0,4).map(e=>"📅 "+e.date+" · Bhag "+e.k+" · "+String(e.title||e.file||"").replace(/ #shorts$/,"")).join("\n");
   if(hit.length){const d=day(hit[0].date),n=hit.map(e=>e.k).join(L(" और "," aur "));
-    return {text:L("सर, "+d+" शाम 7 बजे भाग "+n+" यूट्यूब पर डालने का समय तय है।","Sir, "+d+" shaam 7 baje Bhag "+n+" YouTube par daalne ka samay tay hai.")+late,show}}
+    return {text:L("सर, "+d+" भाग "+n+" शाम 7 बजे यूट्यूब पर अपलोड के लिए शेड्यूल है।","Sir, "+d+" Bhag "+n+" shaam 7 baje YouTube par upload ke liye schedule hai.")+late,show}}
   const next=list[0];
   const no=want===null?L("सर, अभी कोई वीडियो अपलोड के लिए लाइन में नहीं है।","Sir, abhi koi video upload ke liye line mein nahi hai.")
     :L("सर, "+(want?"कल":"आज")+" के लिए कोई वीडियो लाइन में नहीं दिख रहा।","Sir, "+(want?"kal":"aaj")+" ke liye koi video line mein nahi dikh raha.");
