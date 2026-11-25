@@ -253,7 +253,17 @@ function stop(){
 const open=()=>{J("jvbox").style.display="flex";if(!active&&!enrolling)say(profile?"Jarvis band hai.":"Pehle apni awaaz sikhao, phir chalu karo.");ui()};
 const close=()=>{J("jvbox").style.display="none";if(enrolling)stop()};
 J("jvbtn").onclick=open;J("jvclose").onclick=close;
-J("jvgo").onclick=()=>active?stop():start();
+const AKEY="kc_jarvis_auto";
+const setAuto=v=>{try{localStorage.setItem(AKEY,v?"1":"0")}catch(e){}};
+J("jvgo").onclick=()=>{if(active){setAuto(false);stop()}else{if(profile)setAuto(true);start()}};
+// pehle chalu kiya tha to page par pehle tap se apne aap chalu (browser bina tap ke awaaz nahi chalne deta)
+const firstTap=e=>{
+  let want=false;try{want=localStorage.getItem(AKEY)==="1"}catch(x){}
+  if(e.target.closest&&e.target.closest("#jvbtn,#jvbox,#mic,#hmic,#fab,.fb"))return;
+  document.removeEventListener("click",firstTap,true);
+  if(want&&profile&&!active&&!enrolling&&!on)start();
+};
+document.addEventListener("click",firstTap,true);
 J("jvteach").onclick=teach;
 J("jvlvl").value=level();J("jvlvl").onchange=()=>{try{localStorage.setItem(LKEY,J("jvlvl").value)}catch(e){}};
 let armed=0;J("jvmem").onclick=()=>{if(Date.now()-armed>4000){armed=Date.now();say("Pakka? Ek baar aur dabao. Yaad ki "+mems().length+" baatein mit jayengi.");return}armed=0;try{localStorage.removeItem(MKEY)}catch(e){}say("Yaad ki baatein mita di.")};
