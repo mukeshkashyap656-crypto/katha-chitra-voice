@@ -122,7 +122,7 @@ body{padding-bottom:110px}
 <div id="chatinfo"></div>
 <div id="chat"></div>
 <div id="composer"><textarea id="txt" rows="1" placeholder="Yahan likho ya 🎤 dabake bolo"></textarea><button id="mic" aria-label="mic">🎤</button><button id="send" aria-label="Bhejo">📤</button></div>
-<label class="auto"><input type="checkbox" id="autosend"> ⚡ Bolna band karte hi apne aap bhej do</label>
+<label class="auto"><input type="checkbox" id="autosend" checked> ⚡ Bolna band karte hi apne aap bhej do</label>
 <div id="st">Mic dabao aur bolo</div>
 <div id="rep"></div>
 </section>
@@ -169,7 +169,7 @@ body{padding-bottom:110px}
 </details>
 </section>
 <script>
-const VER="2026-11-25-jarvis12";
+const VER="2026-11-25-jarvis14";
 const OWNER="mukeshkashyap656-crypto",REPO="katha-chitra-videos";
 const $=id=>document.getElementById(id);
 const st=t=>$("st").textContent=t;
@@ -182,19 +182,28 @@ $("save").onclick=()=>{const tv=$("tok").value.trim();if(!tv){$("chkout").textCo
 // ---- voice ----
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let rec=null,on=false,base="",userStop=false;
-try{$("autosend").checked=localStorage.getItem("kc_auto")==="1"}catch(e){}
+try{$("autosend").checked=localStorage.getItem("kc_auto")!=="0"}catch(e){}
 $("autosend").onchange=()=>{try{localStorage.setItem("kc_auto",$("autosend").checked?"1":"0")}catch(e){}};
-function killMic(){if(on&&rec){rec.onresult=null;rec.onend=null;rec.onerror=null;try{rec.stop()}catch(e){}}on=false;$("mic").classList.remove("on")}
+let hushT=null;
+function killMic(){clearTimeout(hushT);if(on&&rec){rec.onresult=null;rec.onend=null;rec.onerror=null;try{rec.stop()}catch(e){}}on=false;$("mic").classList.remove("on")}
 if(!SR){st("Is browser mein mic nahi chalta. Chrome use karo, ya keyboard ka mic dabao.")}
 $("mic").onclick=()=>{
   if(!SR){$("txt").focus();return}
   if(on){userStop=true;rec.stop();return}
   userStop=false;rec=new SR();rec.lang="hi-IN";rec.interimResults=true;rec.continuous=true;
   base=$("txt").value?($("txt").value.trim()+" "):"";
-  rec.onresult=e=>{let s="";for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;$("txt").value=base+s};
+  let heard=false,broke=false;
+  rec.onresult=e=>{let s="";for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;$("txt").value=base+s;heard=!!s.trim();
+    // bolna rukne ke 2 second baad apne aap band karke bhej do
+    clearTimeout(hushT);if($("autosend").checked){const r=rec;hushT=setTimeout(()=>{try{r.stop()}catch(x){}},2000)}};
   rec.onstart=()=>{on=true;$("mic").classList.add("on");st("Sun raha hoon… bolo. Rokne ko phir dabao")};
-  rec.onend=()=>{on=false;$("mic").classList.remove("on");st("Ruk gaya. Theek ho to Bhejo dabao");if(userStop&&$("autosend").checked&&$("txt").value.trim()){userStop=false;$("send").click()}};
-  rec.onerror=e=>{const m={"not-allowed":"Mic ki ijazat do (Chrome ke upar 🔒 → Permissions → Microphone → Allow)","service-not-allowed":"Is browser mein mic ki ijazat nahi. Chrome mein kholo.","no-speech":"Kuch sunai nahi diya. Phir dabao aur thoda paas se bolo.","audio-capture":"Phone ka mic nahi mil raha. Dusra app mic use kar raha ho to band karo.","network":"Mic ko internet chahiye (Chrome awaaz Google ko bhejta hai). Internet check karo."};st(m[e.error]||("Mic error: "+e.error+". Chaho to keyboard ka mic dabake text box mein bolo."))};
+  rec.onend=async()=>{clearTimeout(hushT);on=false;$("mic").classList.remove("on");
+    const t=$("txt").value.trim();
+    if(!$("autosend").checked||!heard||broke||document.hidden||location.hash!=="#s1"||!t){st("Ruk gaya. Theek ho to Bhejo dabao");return}
+    heard=false;
+    if(window.kcVoice&&!(await window.kcVoice.okToSend(t))){st("Nahi bheja. Likha hua box mein hai");return}
+    if($("txt").value.trim()===t)$("send").click()};
+  rec.onerror=e=>{broke=true;const m={"not-allowed":"Mic ki ijazat do (Chrome ke upar 🔒 → Permissions → Microphone → Allow)","service-not-allowed":"Is browser mein mic ki ijazat nahi. Chrome mein kholo.","no-speech":"Kuch sunai nahi diya. Phir dabao aur thoda paas se bolo.","audio-capture":"Phone ka mic nahi mil raha. Dusra app mic use kar raha ho to band karo.","network":"Mic ko internet chahiye (Chrome awaaz Google ko bhejta hai). Internet check karo."};st(m[e.error]||("Mic error: "+e.error+". Chaho to keyboard ka mic dabake text box mein bolo."))};
   rec.start();
 };
 
@@ -672,4 +681,4 @@ else idb("readonly",q=>q.get("tok")).then(v=>{if(v&&!gt()){try{localStorage.setI
 route();if(!gt()&&!location.hash)location.hash="s6";
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
-<script src="jarvis.js?v=20261125l"></script><script src="quick.js?v=20261125l"></script></body></html>
+<script src="jarvis.js?v=20261125n"></script><script src="quick.js?v=20261125n"></script></body></html>

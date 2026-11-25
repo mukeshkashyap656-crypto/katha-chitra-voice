@@ -122,10 +122,10 @@ function speak(text){
   return f?playFile(f,Math.max(12000,text.length*200)).then(ok=>ok||speakAny(text)):speakAny(text);
 }
 // tay jawab: record ki hui awaaz. Har baat ke kuch alag tareeke, taaki har baar ek jaisa na lage.
-const BOL={"boliye": ["जी सर, बोलिए।", "हाँ सर, बताइए।", "जी, सुन रहा हूँ।"], "rukta": ["ठीक है सर, मैं चुप हो जाता हूँ।", "अच्छा सर, ज़रूरत हो तो बुला लीजिएगा।"], "pehle": ["सर, डिब्बे में पहले से कुछ लिखा है। उसे भेज दीजिए, या मिटा दीजिए।"], "zaroori": ["सर, ये ज़रा ज़रूरी काम है। एक बार पढ़ लीजिए, फिर भेजो वाला बटन दबा दीजिए।"], "token": ["सर, पहले सेटिंग में टोकन डालना पड़ेगा।"], "nahi": ["अरे, बात जा नहीं पाई सर। एक बार फिर कोशिश करते हैं।", "सर, ये बात भेज नहीं पाया। ज़रा दोबारा देखिए।"], "bheja": ["हो गया सर, भेज दिया। जवाब आते ही बताता हूँ।", "ठीक है सर, मैंने आगे भेज दिया है। जवाब आए तो सुनाता हूँ।", "जी सर, काम दे दिया है। थोड़ा इंतज़ार करते हैं।"], "intezaar": ["सर, अभी तक जवाब नहीं आया। आप एक बार चैट देख लीजिए।"], "chalu": ["जी सर, मैं आ गया।", "हाँ सर, मैं यहीं हूँ।"], "hello": ["हाँ सर, बताइए, आज क्या करना है?", "नमस्ते सर! कहिए, क्या काम है?"]};
+const BOL={"boliye": ["जी सर, बोलिए।", "हाँ सर, बताइए।", "जी, सुन रहा हूँ।"], "rukta": ["ठीक है सर, मैं चुप हो जाता हूँ।", "अच्छा सर, ज़रूरत हो तो बुला लीजिएगा।"], "zaroori": ["सर, ये ज़रूरी काम है। भेज दूँ? हाँ या ना बोलिए।"], "roka": ["ठीक है सर, अभी नहीं भेजा।"], "token": ["सर, पहले सेटिंग में टोकन डालना पड़ेगा।"], "nahi": ["अरे, बात जा नहीं पाई सर। एक बार फिर कोशिश करते हैं।", "सर, ये बात भेज नहीं पाया। ज़रा दोबारा देखिए।"], "bheja": ["हो गया सर, भेज दिया। जवाब आते ही बताता हूँ।", "ठीक है सर, मैंने आगे भेज दिया है। जवाब आए तो सुनाता हूँ।", "जी सर, काम दे दिया है। थोड़ा इंतज़ार करते हैं।"], "intezaar": ["सर, अभी तक जवाब नहीं आया। आप एक बार चैट देख लीजिए।"], "chalu": ["जी सर, मैं आ गया।", "हाँ सर, मैं यहीं हूँ।"], "hello": ["हाँ सर, बताइए, आज क्या करना है?", "नमस्ते सर! कहिए, क्या काम है?"]};
 const SALAAM={"subah": ["गुड मॉर्निंग सर! बताइए, आज क्या करना है?", "नमस्ते सर, सुप्रभात! कहिए, कहाँ से शुरू करें?"], "dopahar": ["नमस्ते सर! कहिए, अब क्या करना है?", "गुड आफ़्टरनून सर! बताइए, क्या काम है?"], "shaam": ["गुड ईवनिंग सर! बताइए, क्या करना है?", "नमस्ते सर! कैसा रहा दिन? बताइए, अब क्या करें?"]};
 const FIXED={};
-for(const k in BOL)BOL[k].forEach((t,i)=>{FIXED[t]="jv-"+k+"-"+(i+1)+"-v2.mp3"});
+for(const k in BOL)BOL[k].forEach((t,i)=>{FIXED[t]="jv-"+k+"-"+(i+1)+(k==="zaroori"?"-v3":"-v2")+".mp3"});
 const lastPick={};
 function pickNo(k,n){let i=Math.floor(Math.random()*n);if(n>1&&i===lastPick[k])i=(i+1)%n;lastPick[k]=i;return i}
 const line=k=>BOL[k][pickNo(k,BOL[k].length)];
@@ -154,22 +154,31 @@ async function loadVoice(){
   label(r.ok?"✅ Har jawab isi awaaz mein":"❌ Awaaz nahi aayi. Dobara dabao");
   return r.ok;
 }
-const pieces=t=>{const out=[];let cur="";for(const s of (t.match(/[^।.?!\n]+[।.?!]*/g)||[t])){if(cur&&(cur+s).length>140){out.push(cur);cur=""}cur+=s}if(cur.trim())out.push(cur);return out};
+// pehla tukda chhota (jaldi bolna shuru ho), baaki 140 akshar tak
+const pieces=t=>{const out=[];let cur="";for(let s of (t.match(/[^।.?!\n]+(?:[।?!]+|\.+(?!\d))*|[।.?!]+/g)||[t])){
+  if(!out.length&&!cur&&s.length>60){const k=s.indexOf(",",15);if(k>0&&k<90){out.push(s.slice(0,k+1));s=s.slice(k+1)}}
+  if(cur&&(!out.length||(cur+s).length>140)){out.push(cur);cur=""}cur+=s}if(cur.trim())out.push(cur);return out.filter(x=>x.trim())};
 async function speakAny(text){
   if(!ttsReady||!text)return speakPhone(text);
-  const run=++sayRun,list=pieces(text);let first=true;
+  const run=++sayRun,list=pieces(text);
+  const make=i=>i<list.length?ttsMsg({text:list[i]},45000):null;
+  let nextOne=make(0);
   speaking=true;J("jvbox").classList.add("talk");
-  for(const part of list){
-    const r=await ttsMsg({text:part},45000);
+  const done=v=>{speaking=false;J("jvbox").classList.remove("talk");return v};
+  for(let i=0;i<list.length;i++){
+    const r=await nextOne;
     if(run!==sayRun)return true;
-    if(!r.ok||!r.wav){speaking=false;J("jvbox").classList.remove("talk");return first?speakPhone(text):false}
+    if(!r.ok||!r.wav){done();return i?false:speakPhone(text)}
+    // ye tukda bajte-bajte agla ban jaata hai, taaki beech mein chuppi na ho
+    nextOne=make(i+1);
     const u=URL.createObjectURL(new Blob([r.wav],{type:"audio/wav"}));
+    speaking=true;
     const ok=await playFile(u,90000);URL.revokeObjectURL(u);
     if(run!==sayRun)return true;
-    if(!ok)return false;
-    first=false;if(part!==list[list.length-1]){speaking=true;J("jvbox").classList.add("talk")}
+    if(!ok)return done(false);
+    if(i<list.length-1){speaking=true;J("jvbox").classList.add("talk")}
   }
-  return true;
+  return done(true);
 }
 const hush=()=>{sayRun++;if(clipStop)clipStop();speaking=false;J("jvbox").classList.remove("talk");try{window.speechSynthesis.cancel()}catch(e){}};
 function speakPhone(text){
@@ -307,7 +316,30 @@ function memory(cmd){
   }
   return null;
 }
-// zaroori kaam awaaz se apne aap nahi jaate
+// ek baar bola hua jawab suno
+function hearOnce(ms){
+  return new Promise(res=>{
+    const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){res("");return}
+    let got="";const rec=new R();cmdRec=rec;rec.lang="hi-IN";rec.interimResults=false;rec.continuous=false;
+    rec.onresult=e=>{let s="";for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;got=s;J("jvheard").textContent=s};
+    rec.onerror=()=>{};
+    const t=setTimeout(()=>{try{rec.stop()}catch(e){}},ms);
+    rec.onend=()=>{clearTimeout(t);const mine=cmdRec===rec;if(mine)cmdRec=null;res(mine?got.trim():"")};
+    try{rec.start()}catch(e){clearTimeout(t);cmdRec=null;res("")}
+  });
+}
+// sirf saaf "haan" par hi haan; kuch aur suna ya kuch nahi suna to nahi
+const YES=/^(?:(?:jarvis|जार्विस)\s+)?(?:(?:जी )?(?:हाँ|हां|हा)(?: जी)?(?: सर)?(?: भेज (?:दो|दीजिए|दे))?|भेज (?:दो|दीजिए)|(?:haan|han|yes)(?: bhej do)?)$/i;
+const isYes=t=>YES.test(t.replace(/[।.,!?]/g," ").replace(/\s+/g," ").trim());
+async function confirmVoice(cmd){
+  J("jvbox").style.display="flex";say("Bhej doon? “हाँ” ya “ना” bolo");J("jvheard").textContent="“"+cmd+"”";
+  if(!(await speak(line("zaroori"))))return false;
+  if(document.hidden)return false;
+  const ok=isYes(await hearOnce(8000));
+  close();
+  return ok;
+}
+// delete, post jaise zaroori kaam bina "haan" ke nahi jaate
 const RISKY=/delete|remove|publish|upload|post|public|private|token|password|payment|paisa|paise|stop|cancel|hata|mita|band kar|rok|डिलीट|हटा|मिटा|पोस्ट|पब्लिश|अपलोड|पब्लिक|प्राइवेट|टोकन|पासवर्ड|पेमेंट|पैस|रोक|बंद कर|कैंसल/i;
 async function handle(cmd){
   cmd=cmd.replace(/^\s*(?:(?:jarvis|जार्विस|जारविस)(?:[\s,।]+|$))+/i,"");
@@ -331,15 +363,20 @@ async function handle(cmd){
   }
   location.hash="s1";
   const box=document.getElementById("txt");
-  if(box.value.trim()){close();await speak(line("pehle"));listen();return}
-  box.value=cmd;
-  if(RISKY.test(c)){close();await speak(line("zaroori"));listen();return}
   if(!gt()){await speak(line("token"));listen();return}
+  if(RISKY.test(c)){
+    const run=gen;const ok=await confirmVoice(cmd);
+    if(!active||run!==gen)return;
+    if(!ok){await speak(line("roka"));listen();return}
+    location.hash="s1";
+  }
+  const draft=box.value;box.value=cmd;
   say("AI ko bhej raha hoon…");
   const before=chatN;
   const old=new Set(chatN?chatMsgs.filter(m=>m.who==="ai").map(m=>m.id):[]);
   await sendGH();
-  if(box.value.trim()){await speak(line("nahi"));listen();return}
+  const failed=!!box.value.trim();box.value=draft;
+  if(failed){await speak(line("nahi"));listen();return}
   watch(chatN,old,Date.now());
   await speak(line("bheja"));listen();
 }
@@ -364,7 +401,7 @@ function watch(n,old,t0){
     const m=chatMsgs.filter(m=>m.who==="ai"&&!old.has(m.id)).pop();
     if(!m||speaking||cmdRec){watch(n,old,t0);return}
     await speak(short(m.text));
-  },8000);
+  },Date.now()-t0<3*60000?4000:8000);
 }
 async function start(quiet){
   if(!profile){say("Pehle apni awaaz sikhao.");return}
@@ -441,7 +478,9 @@ J("jvfull").onclick=async()=>{
   if(await loadVoice()){try{localStorage.setItem(VON,"1")}catch(e){}speak("जी सर, अब से मैं हर बात इसी आवाज़ में करूँगा।")}
 };
 if(fullOn())loadVoice();
-window.kcVoice={speak,hush};
+window.kcVoice={speak,hush,
+  // mic button se bola hua: zaroori ho to bolkar "haan" poochho
+  async okToSend(t){if(!RISKY.test(t.toLowerCase()))return true;const ok=await confirmVoice(t);if(!ok)await speak(line("roka"));return ok}};
 J("jvvoice").onclick=()=>{
   const l=hiVoices();if(!l.length){say("Is phone mein Hindi ki doosri awaaz nahi mili.");return}
   const cur=pickVoice(),n=l[(l.findIndex(v=>v.voiceURI===(cur&&cur.voiceURI))+1)%l.length];
