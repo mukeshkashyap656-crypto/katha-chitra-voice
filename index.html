@@ -118,7 +118,7 @@ body{padding-bottom:110px}
 <button id="notok">🔑 Token nahi hai. Yahan dabake daalo, tabhi kaam hoga</button>
 <button id="hmic"><i>🎤</i><span>Dabao aur bolo</span></button>
 <button id="fab" aria-label="Mic">🎤</button>
-<div id="home"><div class="app" data-s="s1"><div class="ic"><i style="background:linear-gradient(135deg,#ff512f,#dd2476)">💬</i></div><span>Chat</span></div><div class="app" data-s="s2"><div class="ic"><i style="background:linear-gradient(135deg,#36d1dc,#5b86e5)">📜</i></div><span>AI ke kaam</span></div><div class="app" data-s="s3"><div class="ic"><i style="background:linear-gradient(135deg,#f7971e,#ffd200)">🎬</i></div><span>Video</span></div><div class="app" data-s="s4"><div class="ic"><i style="background:linear-gradient(135deg,#ff0844,#ff7a5c)">📺</i></div><span>YouTube</span></div><div class="app" data-s="s5"><div class="ic"><i style="background:linear-gradient(135deg,#f12711,#f5af19)">⚠️</i></div><span>Warning</span></div><div class="app" data-s="s7"><div class="ic"><i style="background:linear-gradient(135deg,#7f00ff,#e100ff)">📝</i></div><span>Blog</span></div><div class="app" data-s="s6"><div class="ic"><i style="background:linear-gradient(135deg,#11998e,#38ef7d)">⚙️</i></div><span>Setup</span></div></div>
+<div id="home"><div class="app" data-s="s1"><div class="ic"><i style="background:linear-gradient(135deg,#ff512f,#dd2476)">💬</i></div><span>Chat</span></div><div class="app" data-s="s1" data-ai="aws"><div class="ic"><i style="background:linear-gradient(135deg,#ff9900,#ff5e00)">☁️</i></div><span>AWS</span></div><div class="app" data-s="s2"><div class="ic"><i style="background:linear-gradient(135deg,#36d1dc,#5b86e5)">📜</i></div><span>AI ke kaam</span></div><div class="app" data-s="s3"><div class="ic"><i style="background:linear-gradient(135deg,#f7971e,#ffd200)">🎬</i></div><span>Video</span></div><div class="app" data-s="s4"><div class="ic"><i style="background:linear-gradient(135deg,#ff0844,#ff7a5c)">📺</i></div><span>YouTube</span></div><div class="app" data-s="s5"><div class="ic"><i style="background:linear-gradient(135deg,#f12711,#f5af19)">⚠️</i></div><span>Warning</span></div><div class="app" data-s="s7"><div class="ic"><i style="background:linear-gradient(135deg,#7f00ff,#e100ff)">📝</i></div><span>Blog</span></div><div class="app" data-s="s6"><div class="ic"><i style="background:linear-gradient(135deg,#11998e,#38ef7d)">⚙️</i></div><span>Setup</span></div></div>
 <div id="ver"></div>
 <section class="scr" id="s1"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">💬 Chat</div><button class="bk sm" id="newchat" aria-label="Nayi chat" title="Nayi chat">➕</button><button class="bk sm" id="endchat" aria-label="Chat band karo" title="Chat band karo">✅</button></div>
 <div id="chatinfo"></div>
@@ -173,7 +173,7 @@ body{padding-bottom:110px}
 </details>
 </section>
 <script>
-const VER="2026-11-27-aws1";
+const VER="2026-11-27-aws2";
 const OWNER="mukeshkashyap656-crypto",REPO="katha-chitra-videos";
 const $=id=>document.getElementById(id);
 const st=t=>$("st").textContent=t;
@@ -685,7 +685,7 @@ function route(){const h=location.hash.slice(1);show(/^s[1-7]$/.test(h)?h:"")}
 window.addEventListener("hashchange",route);
 function goMic(){location.hash="s1";setTimeout(()=>{if(!on)$("mic").click()},150)}
 $("notok").onclick=()=>{location.hash="s6"};$("hmic").onclick=goMic;$("fab").onclick=goMic;
-document.querySelectorAll(".app").forEach(a=>a.onclick=()=>{location.hash=a.dataset.s});
+document.querySelectorAll(".app").forEach(a=>a.onclick=()=>{if(a.dataset.s==="s1")setAi(a.dataset.ai||"own");location.hash=a.dataset.s});
 document.querySelectorAll(".bk:not(.sm)").forEach(b=>b.onclick=()=>{location.hash=""});
 document.querySelectorAll(".app .ic").forEach(ic=>ic.insertAdjacentHTML("beforeend","<b class=bd></b>"));
 $("ver").textContent="Page version "+VER;
