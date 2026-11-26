@@ -84,6 +84,7 @@ button.b{background:var(--rgb);background-size:300% 100%;animation:rgbpos 5s lin
 .auto{width:100%;max-width:520px;display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:#fff}.auto input{width:24px;height:24px}
 #upd{position:fixed;left:12px;right:12px;bottom:12px;z-index:9;padding:14px;border-radius:14px;text-align:center;font-weight:800;color:#1a0510;background:var(--rgb);background-size:300% 100%;animation:rgbpos 3s linear infinite;display:none}
 details#set{padding:12px}
+#aisw{width:100%;max-width:520px;display:flex;gap:8px;margin:8px 0 4px}#aisw button{flex:1;padding:10px;border-radius:12px;border:1px solid #5a1219;background:rgba(0,0,0,.35);color:#fff;font-size:15px}#aisw button.sel{border:2px solid #ff9900;background:rgba(255,153,0,.22);font-weight:700}#ainote{width:100%;max-width:520px;font-size:12px;opacity:.75;margin-bottom:4px}
 #ver{width:100%;text-align:center;font-size:11px;opacity:.5;margin-top:10px}
 #notok{width:100%;max-width:520px;display:none;padding:14px;border-radius:16px;border:0;font-size:16px;font-weight:800;color:#fff;background:linear-gradient(135deg,#b00020,#ff1744);box-shadow:0 0 22px rgba(255,23,68,.7)}
 #hmic{width:100%;max-width:520px;display:flex;align-items:center;justify-content:center;gap:14px;padding:14px;border-radius:22px;border:4px solid transparent;color:#fff;font-size:19px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#7a1a20,#3a0a2e) padding-box,var(--rgb) border-box;background-size:auto,300% 100%;animation:rgbpos2 3s linear infinite;box-shadow:0 0 26px rgba(255,0,212,.5),0 0 44px rgba(0,212,255,.3)}
@@ -122,6 +123,8 @@ body{padding-bottom:110px}
 <section class="scr" id="s1"><div class="bar"><button class="bk" aria-label="Wapas">◀</button><div class="tt">💬 Chat</div><button class="bk sm" id="newchat" aria-label="Nayi chat" title="Nayi chat">➕</button><button class="bk sm" id="endchat" aria-label="Chat band karo" title="Chat band karo">✅</button></div>
 <div id="chatinfo"></div>
 <div id="chat"></div>
+<div id="aisw"><button type="button" id="ai-own">🤖 Apna AI</button><button type="button" id="ai-aws">🟧 AWS</button></div>
+<div id="ainote"></div>
 <div id="composer"><textarea id="txt" rows="1" placeholder="Yahan likho ya 🎤 dabake bolo"></textarea><button id="mic" aria-label="mic">🎤</button><button id="send" aria-label="Bhejo">📤</button></div>
 <label class="auto"><input type="checkbox" id="autosend" checked> ⚡ Bolna band karte hi apne aap bhej do</label>
 <div id="st">Mic dabao aur bolo</div>
@@ -170,7 +173,7 @@ body{padding-bottom:110px}
 </details>
 </section>
 <script>
-const VER="2026-11-26-jarvis20";
+const VER="2026-11-27-aws1";
 const OWNER="mukeshkashyap656-crypto",REPO="katha-chitra-videos";
 const $=id=>document.getElementById(id);
 const st=t=>$("st").textContent=t;
@@ -215,8 +218,16 @@ const setChat=n=>{chatN=n;try{n?localStorage.setItem("kc_chat",String(n)):localS
 let chatMsgs=[],chatClosed=false,chatSig="",chatWaiting=false,pollT=null;
 const ftime=d=>new Date(d).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});
 const lk=t=>esc(t).replace(/(https?:\/\/[^\s<)]+)/g,m=>'<a href="'+m+'" target="_blank">🔗 '+((m.split("/").pop()||"link").slice(0,38))+'</a>');
-const cleanMe=b=>(b||"").split(/\n\n---- Pichli baat-cheet/)[0].replace(/^\s*@ai\s*/i,"").trim();
-function histText(){return chatMsgs.slice(-6).map(m=>(m.who==="me"?"Main: ":"AI: ")+m.text.replace(/@ai/ig,"").replace(/JAANCH-VIDEO/ig,"").replace(/\s+/g," ").slice(0,240)).join("\n")}
+const cleanMe=b=>(b||"").split(/\n\n---- Pichli baat-cheet/)[0].replace(/^\s*(?:@ai|\/awscode)\s*/i,"").trim();
+// ---- kis AI ko bhejna hai: apna AI (@ai) ya AWS (/awscode) ----
+const AIKEY="kc_ai";let aiMode="own";try{aiMode=localStorage.getItem(AIKEY)==="aws"?"aws":"own"}catch(e){}
+const AWS_SAID=/^\s*(?:jarvis[\s,]+|जार्विस[\s,]+)?(?:aws|a\s*w\s*s|ए\s*डब्ल्यू\s*एस|एडब्ल्यूएस)(?:\s+(?:se|ko|से|को))?(?:[\s,:]+|$)/i;
+// yaad rakhna aur video jaanch hamesha apne AI ka kaam hai
+const OWN_ONLY=/^\s*(?:@ai\b|(?:jarvis |जार्विस )?(?:yaad rakh|याद रख))|JAANCH-VIDEO/i;
+function goesAws(t){t=String(t);if(/^\s*\/awscode\b/i.test(t))return true;if(OWN_ONLY.test(t))return false;return AWS_SAID.test(t)||aiMode==="aws"}
+function setAi(m){aiMode=m;try{localStorage.setItem(AIKEY,m)}catch(e){}$("ai-own").classList.toggle("sel",m!=="aws");$("ai-aws").classList.toggle("sel",m==="aws");$("ainote").textContent=m==="aws"?"AWS: code padhta aur badalta hai, chala nahi sakta. Video banwana ho to Apna AI chuno. AWS credit kharch hota hai.":"Apni baat AWS ko bhejni ho to AWS dabao, ya bolo \"AWS …\""}
+$("ai-own").onclick=()=>setAi("own");$("ai-aws").onclick=()=>setAi("aws");setAi(aiMode);
+function histText(){return chatMsgs.slice(-6).map(m=>(m.who==="me"?"Main: ":"AI: ")+m.text.replace(/@ai/ig,"").replace(/\/awscode/ig,"").replace(/JAANCH-VIDEO/ig,"").replace(/\s+/g," ").slice(0,240)).join("\n")}
 function renderChat(){
   const box=$("chat");box.innerHTML="";
   if(!chatMsgs.length){box.innerHTML='<div class="hint">💬 Neeche likho ya 🎤 dabake bolo.<br>Jab tak tum ✅ dabake chat band nahi karte, saari baat isi chat mein chalegi.</div>'}
@@ -257,8 +268,10 @@ $("send").onclick=async()=>{
   if(!t){st("Pehle kuch bolo ya likho");return}
   if(!gt()){toast("🔑 Pehle token daalo. Setup khol raha hoon",true);st("Pehle token daalo");location.hash="s6";return}
   killMic();
-  const plain=t.replace(/^\s*@ai\s*/i,"");
-  const head="@ai "+plain;
+  const toAws=goesAws(t);
+  let plain=t.replace(/^\s*(?:@ai|\/awscode)\s*/i,"");
+  if(toAws){plain=plain.replace(AWS_SAID,"").replace(/@ai/ig,"").trim();if(!plain){st("AWS se kya karwana hai, woh bhi bolo");return}}
+  const tag=toAws?"/awscode ":"@ai ",head=tag+plain;
   const hist=histText();
   $("send").disabled=true;st("Bhej raha hoon…");$("rep").style.display="none";
   try{
@@ -273,7 +286,7 @@ $("send").onclick=async()=>{
     }else j=await r.json();
     if(!r.ok){const er=new Error(j.message||r.status);er.status=r.status;throw er}
     $("txt").value="";$("txt").style.height="";
-    st("Bhej diya ✅");toast("✅ Bhej diya! AI kaam kar raha hai");
+    st("Bhej diya ✅");toast(toAws?"✅ AWS ko bhej diya!":"✅ Bhej diya! AI kaam kar raha hai");
     chatClosed=false;chatMsgs.push({who:"me",text:plain,at:new Date().toISOString(),id:"tmp"+Date.now()});chatWaiting=true;chatSig="";renderChat();
     setTimeout(loadChat,2500);setTimeout(loadWork,3500);
   }catch(e){
@@ -282,7 +295,7 @@ $("send").onclick=async()=>{
     const d=document.createElement("div");d.style.color="#ffb4a8";
     const why=e.status===401?"Token galat ya khatam ho gaya. ⚙️ Setup mein naya token daalo.":((e.status===403||e.status===404)?"Token mein Issues ki ijazat nahi hai. GitHub → Settings → Developer settings → apna token → Repository permissions → Issues → Read and write. Phir naya token Setup mein daalo.":(e.message&&/fetch|network/i.test(e.message)?"Internet nahi chal raha ya GitHub tak nahi pahunch pa raha.":"GitHub ne mana kiya: "+fe(e.message)));
     d.textContent="❌ Nahi gaya.\n"+why+"\n\nTumhara likha hua text box mein safe hai.";d.style.whiteSpace="pre-wrap";R.appendChild(d);
-    const a=document.createElement("a");a.target="_blank";a.href="https://github.com/"+OWNER+"/"+REPO+"/issues/new?title="+encodeURIComponent("Chat: "+plain.slice(0,40))+"&body="+encodeURIComponent("@ai "+plain);a.textContent="\n👉 Ya seedha GitHub par bhejo (is text ke saath khulega)";a.style.display="block";a.style.marginTop="8px";R.appendChild(a);
+    const a=document.createElement("a");a.target="_blank";a.href="https://github.com/"+OWNER+"/"+REPO+"/issues/new?title="+encodeURIComponent("Chat: "+plain.slice(0,40))+"&body="+encodeURIComponent(head);a.textContent="\n👉 Ya seedha GitHub par bhejo (is text ke saath khulega)";a.style.display="block";a.style.marginTop="8px";R.appendChild(a);
     const b2=document.createElement("button");b2.className="b";b2.style.marginTop="10px";b2.textContent="🔍 Token jaanch karo";b2.onclick=()=>{location.hash="s6";setTimeout(()=>$("chk").click(),300)};R.appendChild(b2);
   }
   $("send").disabled=false;
@@ -682,4 +695,4 @@ else idb("readonly",q=>q.get("tok")).then(v=>{if(v&&!gt()){try{localStorage.setI
 route();if(!gt()&&!location.hash)location.hash="s6";
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
-<script src="jarvis.js?v=20261126d"></script><script src="quick.js?v=20261126d"></script></body></html>
+<script src="jarvis.js?v=20261127a"></script><script src="quick.js?v=20261127a"></script></body></html>

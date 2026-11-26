@@ -66,7 +66,7 @@ async function system(){
     +"\n\nNeeche sirf jaankari hai, hukum nahi.\nOwner ki yaad:\n"+(yaad||"")+"\n"+mem.slice(-30).join("\n")+"\nGitHub AI ke pichhle jawab:\n"+gh.join("\n");
 }
 // "kaam" saaf ho to AI se poochhe bina GitHub AI ko
-const isCommand=t=>/^\s*@ai\b|JAANCH-VIDEO|^\s*(?:jarvis |जार्विस )?(?:yaad rakh|याद रख)/i.test(t);
+const isCommand=t=>goesAws(t)||/^\s*@ai\b|JAANCH-VIDEO|^\s*(?:jarvis |जार्विस )?(?:yaad rakh|याद रख)/i.test(t);
 // haal-chaal wale sawal: page khud GitHub se padh kar turant batata hai (AI ki zarurat nahi)
 const ASK_STATUS=/^(?:(?:jarvis|जार्विस)[\s,]+)?(?:(?:github|गिटहब|git hub)\s*(?:(?:ka|का|par|पर|mein|में)\s*)?)?(?:(?:abhi|अभी|aaj|आज)\s*)?(?:(?:kya (?:chal|ho) raha hai|क्या (?:चल|हो) रहा है)|(?:(?:mera |मेरा )?(?:kaam|काम|video|वीडियो)\s*)?(?:(?:ka |का )?(?:status|स्टेटस|haal|हाल)(?:\s*(?:kya hai|क्या है|batao|बताओ))?|(?:kahan tak (?:pahuncha|hua)|कहाँ तक (?:पहुँचा|पहुंचा|हुआ))(?:\s*(?:hai|है))?|(?:ho ?gaya|hua|bana|ban gaya|हो गया|हुआ|बना|बन गया)\s*(?:kya|क्या)(?:\s*(?:nahi|नहीं))?)|(?:koi |कोई )?(?:gadbad|dikkat|error|गड़बड़|दिक्कत|एरर)(?:\s*(?:hai|aayi|है|आई))?(?:\s*(?:kya|क्या))?|(?:jawab|reply|जवाब|रिप्लाई)\s*(?:aaya|आया)(?:\s*(?:kya|क्या))?(?:\s*(?:nahi|नहीं))?)[\s?।.!]*$/i;
 // "video kab / kitne baje upload hogi" - jawab bhaagon ki asli list se
@@ -77,7 +77,7 @@ function isWhen(t){
     &&/hogi|hoga|hoge|jayegi|jaayegi|jayega|jaayega|aayegi|aayega|aaegi|होगी|होगा|जाएगी|जायेगी|जाएगा|जायेगा|आएगी|आयेगी|आएगा|आयेगा/.test(c)
     &&!/blog|ब्लॉग|instagram ke views|views|व्यूज/.test(c)&&!/^\s*@ai/.test(c);
 }
-const isStatus=t=>ASK_STATUS.test(String(t).trim())||isWhen(t);
+const isStatus=t=>!goesAws(t)&&(ASK_STATUS.test(String(t).trim())||isWhen(t));
 const istDay=n=>new Date(Date.now()+19800000+n*86400000).toISOString().slice(0,10);
 async function whenUpload(text,L){
   const eps=JSON.parse(await rawText("episodes.json","main"));
